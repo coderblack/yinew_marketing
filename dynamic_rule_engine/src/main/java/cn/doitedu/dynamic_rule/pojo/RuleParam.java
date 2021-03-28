@@ -27,6 +27,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RuleParam implements Serializable {
+    private String ruleId;
 
     // 规则中的触发条件
     private RuleAtomicParam triggerParam;

@@ -80,7 +80,7 @@ public class ActionLogGen {
                     while (true) {
                         LogBean logBean = new LogBean();
                         // 生成的账号形如： 004078
-                        String account = StringUtils.leftPad(RandomUtils.nextInt(1, 10000) + "", 6, "0");
+                        String account = StringUtils.leftPad(RandomUtils.nextInt(1, 100) + "", 6, "0");
                         logBean.setAccount(account);
                         logBean.setAppId("cn.doitedu.yinew");
                         logBean.setAppVersion("2.5");
@@ -96,6 +96,8 @@ public class ActionLogGen {
                         logBean.setOsVersion("7.5");
                         logBean.setReleaseChannel("小米应用市场");
                         logBean.setResolution("2048*1024");
+
+
                         logBean.setEventId(RandomStringUtils.randomAlphabetic(1).toUpperCase());
 
                         HashMap<String, String> properties = new HashMap<String, String>();
@@ -119,7 +121,7 @@ public class ActionLogGen {
                         kafkaProducer.send(record);
 
                         try {
-                            Thread.sleep(RandomUtils.nextInt(500, 1500));
+                            Thread.sleep(RandomUtils.nextInt(200, 201));
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }

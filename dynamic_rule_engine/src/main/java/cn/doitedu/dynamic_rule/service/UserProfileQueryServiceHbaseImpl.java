@@ -29,8 +29,11 @@ public class UserProfileQueryServiceHbaseImpl implements UserProfileQueryService
         Configuration conf = new Configuration();
         conf.set("hbase.zookeeper.quorum", "hdp01:2181,hdp02:2181,hdp03:2181");
 
+        System.out.println("准备创建hbase连接........");
         conn = ConnectionFactory.createConnection(conf);
         table = conn.getTable(TableName.valueOf("yinew_profile"));
+        System.out.println("创建hbase连接完毕.........");
+
 
     }
 
@@ -73,6 +76,7 @@ public class UserProfileQueryServiceHbaseImpl implements UserProfileQueryService
                 byte[] valueBytes = result.getValue("f".getBytes(), tagName.getBytes());
                 // 判断查询到的value和条件中要求的value是否一致，如果不一致，方法直接返回：false
                 if(!(valueBytes!=null && new String(valueBytes).equals(userProfileParams.get(tagName)))){
+                    System.out.println("查询了hbase，只是不匹配，真实值：" + new String(valueBytes) + "条件值：" + userProfileParams.get(tagName));
                     return false;
                 }
             }

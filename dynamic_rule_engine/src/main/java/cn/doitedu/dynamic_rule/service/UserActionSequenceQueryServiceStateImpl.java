@@ -68,7 +68,7 @@ public class UserActionSequenceQueryServiceStateImpl implements UserActionSequen
         int index = 0;
         for (RuleAtomicParam userActionSequenceParam : userActionSequenceParams) {
 
-            // 内循环，遍历每一个历史明细事件
+            // 内循环，遍历每一个历史明细事件，看看能否找到与当前条件匹配的事件
             boolean isFind = false;
             for(int i=index;i<eventList.size();i++){
                 LogBean logBean = eventList.get(i);
@@ -86,6 +86,8 @@ public class UserActionSequenceQueryServiceStateImpl implements UserActionSequen
             if(!isFind) break;
 
         }
+
+        System.out.println("步骤匹配计算完成： 查询到的最大步骤号为： " + maxStep + ",条件中的步骤数为：" + userActionSequenceParams.size());
         return maxStep;
     }
 
