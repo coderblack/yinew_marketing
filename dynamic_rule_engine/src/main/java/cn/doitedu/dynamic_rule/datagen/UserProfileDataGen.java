@@ -20,47 +20,43 @@ import java.util.ArrayList;
  * @site www.doitedu.cn
  * @date 2021-03-27
  * @desc 用户画像数据模拟器
- *
+ * <p>
  * deviceid,k1=v1
- *
+ * <p>
  * hbase中需要先创建好画像标签表
  * [root@hdp01 ~]# hbase shell
  * hbase> create 'yinew_profile','f'
- *
- *
  */
 public class UserProfileDataGen {
     public static void main(String[] args) throws IOException {
 
         Configuration conf = new Configuration();
-        conf.set("hbase.zookeeper.quorum","hdp01:2181,hdp02:2181,hdp03:2181");
+        conf.set("hbase.zookeeper.quorum", "hdp01:2181,hdp02:2181,hdp03:2181");
 
         Connection conn = ConnectionFactory.createConnection(conf);
         Table table = conn.getTable(TableName.valueOf("yinew_profile"));
 
         ArrayList<Put> puts = new ArrayList<>();
-        for(int i=1;i<10000;i++){
+        for (int i = 1; i < 1000000; i++) {
 
-            // 攒满100条一批
-            for(int j=0;j<100;j++) {
-
-                // 生成一个用户的画像标签数据
-                String deviceId = StringUtils.leftPad(i + "", 6, "0");
-                Put put = new Put(Bytes.toBytes(deviceId));
-                for (int k = 1; k <= 100; k++) {
-                    String key = "tag" + k;
-                    String value = "v" + RandomUtils.nextInt(1, 101);
-                    put.addColumn(Bytes.toBytes("f"), Bytes.toBytes(key), Bytes.toBytes(value));
-                }
-
-                // 将这一条画像数据，添加到list中
-                puts.add(put);
+            // 生成一个用户的画像标签数据
+            String deviceId = StringUtils.leftPad(i + "", 6, "0");
+            Put put = new Put(Bytes.toBytes(deviceId));
+            for (int k = 1; k <= 100; k++) {
+                String key = "tag" + k;
+                String value = "v" + RandomUtils.nextInt(1, 101);
+                put.addColumn(Bytes.toBytes("f"), Bytes.toBytes(key), Bytes.toBytes(value));
             }
 
+            // 将这一条画像数据，添加到list中
+            puts.add(put);
 
             // 提交一批
-            table.put(puts);
-            puts.clear();
+            // 攒满100条一批
+            if(puts.size()==100) {
+                table.put(puts);
+                puts.clear();
+            }
 
         }
 
