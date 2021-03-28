@@ -4,8 +4,12 @@ package cn.doitedu.dynamic_rule.service;
 import cn.doitedu.dynamic_rule.pojo.LogBean;
 import cn.doitedu.dynamic_rule.pojo.RuleAtomicParam;
 import cn.doitedu.dynamic_rule.pojo.RuleParam;
+import cn.doitedu.dynamic_rule.utils.RuleCalcUtil;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.api.common.state.ListState;
+import org.apache.flink.util.IterableUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -56,18 +60,33 @@ public class UserActionSequenceQueryServiceStateImpl implements UserActionSequen
      */
     public int queryActionSequenceHelper(Iterable<LogBean> events,List<RuleAtomicParam> userActionSequenceParams){
 
+        ArrayList<LogBean> eventList = new ArrayList<>();
+        CollectionUtils.addAll(eventList,events.iterator());
 
+        // 外循环，遍历每一个条件
+        int maxStep = 0;
+        int index = 0;
+        for (RuleAtomicParam userActionSequenceParam : userActionSequenceParams) {
 
+            // 内循环，遍历每一个历史明细事件
+            boolean isFind = false;
+            for(int i=index;i<eventList.size();i++){
+                LogBean logBean = eventList.get(i);
+                // 判断当前的这个事件 logBean，是否满足当前规则条件 userActionSequenceParam
+                boolean match = RuleCalcUtil.eventBeanMatchEventParam(logBean, userActionSequenceParam,true);
+                // 如果匹配，则最大步骤号+1，且更新下一次内循环的起始位置,并跳出本轮内循环
+                if(match){
+                    maxStep++;
+                    index = i+1;
+                    isFind = true;
+                    break;
+                }
+            }
 
+            if(!isFind) break;
 
-
-
-
-
-        return 0;
+        }
+        return maxStep;
     }
-
-
-
 
 }

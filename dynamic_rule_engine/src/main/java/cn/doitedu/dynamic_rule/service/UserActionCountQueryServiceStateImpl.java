@@ -3,6 +3,7 @@ package cn.doitedu.dynamic_rule.service;
 import cn.doitedu.dynamic_rule.pojo.LogBean;
 import cn.doitedu.dynamic_rule.pojo.RuleAtomicParam;
 import cn.doitedu.dynamic_rule.pojo.RuleParam;
+import cn.doitedu.dynamic_rule.utils.RuleCalcUtil;
 import org.apache.flink.api.common.state.ListState;
 
 import java.util.HashMap;
@@ -25,16 +26,16 @@ public class UserActionCountQueryServiceStateImpl implements UserActionCountQuer
      * 查询规则参数对象中，要求的用户行为次数类条件是否满足
      * 同时，将查询到的真实次数，set回 规则参数对象中
      *
-     * @param eventState  用户事件明细存储state
-     * @param ruleParam 规则整体参数对象
+     * @param eventState 用户事件明细存储state
+     * @param ruleParam  规则整体参数对象
      * @return 条件是否满足
      */
     public boolean queryActionCounts(ListState<LogBean> eventState, RuleParam ruleParam) throws Exception {
 
-        // 取出用户行为次数类条件
+        // 取出各个用户行为次数原子条件
         List<RuleAtomicParam> userActionCountParams = ruleParam.getUserActionCountParams();
 
-        // 迭代每一个历史明细事件
+        // 取出历史明细数据
         Iterable<LogBean> logBeansIterable = eventState.get();
 
 
@@ -44,7 +45,7 @@ public class UserActionCountQueryServiceStateImpl implements UserActionCountQuer
 
         // 经过上面的方法执行后，每一个原子条件中，都拥有了一个真实发生次数，我们在此判断是否每个原子条件都满足
         for (RuleAtomicParam userActionCountParam : userActionCountParams) {
-            if(userActionCountParam.getRealCnts()<userActionCountParam.getCnts()){
+            if (userActionCountParam.getRealCnts() < userActionCountParam.getCnts()) {
                 return false;
             }
         }
@@ -58,18 +59,20 @@ public class UserActionCountQueryServiceStateImpl implements UserActionCountQuer
     /**
      * 根据传入的历史明细，和规则条件
      * 挨个统计每一个规则原子条件的真实发生次数，并将结果set回规则条件参数中
+     *
      * @param logBeansIterable
      * @param userActionCountParams
      */
-    public void queryActionCountsHelper(Iterable<LogBean> logBeansIterable,List<RuleAtomicParam> userActionCountParams){
+    public void queryActionCountsHelper(Iterable<LogBean> logBeansIterable, List<RuleAtomicParam> userActionCountParams) {
         for (LogBean logBean : logBeansIterable) {
 
             for (RuleAtomicParam userActionCountParam : userActionCountParams) {
 
                 // 判断当前logbean 和当前 规则原子条件userActionCountParam 是否一致
-                boolean isMatch = eventBeanMatchEventParam(logBean, userActionCountParam);
+                boolean isMatch = RuleCalcUtil.eventBeanMatchEventParam(logBean, userActionCountParam,true);
+
                 // 如果一致，则查询次数结果+1
-                if(isMatch) {
+                if (isMatch) {
                     userActionCountParam.setRealCnts(userActionCountParam.getRealCnts() + 1);
                 }
             }
@@ -77,37 +80,6 @@ public class UserActionCountQueryServiceStateImpl implements UserActionCountQuer
         }
 
     }
-
-
-    /**
-     * 工具方法，用于判断一个待判断事件和一个规则中的原子条件是否一致
-     * @param eventBean
-     * @param eventParam
-     * @return
-     */
-    private boolean eventBeanMatchEventParam(LogBean eventBean,RuleAtomicParam eventParam){
-        // 如果传入的一个事件的事件id与参数中的事件id相同，才开始进行属性判断
-        if(eventBean.getEventId().equals(eventParam.getEventId())){
-
-            // 取出待判断事件中的属性
-            Map<String, String> eventProperties = eventBean.getProperties();
-
-            // 取出条件中的事件属性
-            HashMap<String, String> paramProperties = eventParam.getProperties();
-            Set<Map.Entry<String, String>> entries = paramProperties.entrySet();
-            // 遍历条件中的每个属性及值
-            for (Map.Entry<String, String> entry : entries) {
-                if(!entry.getValue().equals(eventProperties.get(entry.getKey()))){
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
 
 
 }
