@@ -8,7 +8,14 @@ import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import java.io.IOException;
-
+/***
+ * @author 涛哥
+ * @nick_name "deep as the sea"
+ * @contack qq:657270652 wx:doit_edu
+ * @site www.51doit.cn
+ * @date 2021/3/29
+ * @desc hbase查询性能简单测试代码
+**/
 public class HbaseGetTest {
     public static void main(String[] args) throws IOException {
 

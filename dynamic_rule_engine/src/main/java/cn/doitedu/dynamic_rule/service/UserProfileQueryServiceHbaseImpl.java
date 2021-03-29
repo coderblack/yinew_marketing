@@ -33,11 +33,7 @@ public class UserProfileQueryServiceHbaseImpl implements UserProfileQueryService
         conn = ConnectionFactory.createConnection(conf);
         table = conn.getTable(TableName.valueOf("yinew_profile"));
         System.out.println("创建hbase连接完毕.........");
-
-
     }
-
-
 
     /**
      * 传入一个用户号，以及要查询的条件
@@ -89,6 +85,4 @@ public class UserProfileQueryServiceHbaseImpl implements UserProfileQueryService
         // 如果到了这，说明前面的查询出异常了，返回false即可
         return false;
     }
-
-
 }

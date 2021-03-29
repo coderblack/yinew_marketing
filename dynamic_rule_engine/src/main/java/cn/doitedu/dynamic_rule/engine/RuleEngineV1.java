@@ -42,7 +42,6 @@ public class RuleEngineV1 {
         // 打印
         resultStream.print();
 
-
         env.execute();
     }
 }

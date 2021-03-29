@@ -64,13 +64,13 @@ public class ActionSequenceQueryTest {
         RuleAtomicParam param2 = new RuleAtomicParam();
         param2.setEventId("000020");
         HashMap<String, String> paramProps2 = new HashMap<>();
-        paramProps2.put("p2","v2");
+        paramProps2.put("p2","v3");
         param2.setProperties(paramProps2);
 
         RuleAtomicParam param3 = new RuleAtomicParam();
         param3.setEventId("000020");
         HashMap<String, String> paramProps3 = new HashMap<>();
-        paramProps3.put("p4","v5");
+        paramProps3.put("p4","v6");
         param3.setProperties(paramProps3);
 
         ArrayList<RuleAtomicParam> ruleParams = new ArrayList<>();
@@ -81,7 +81,7 @@ public class ActionSequenceQueryTest {
 
         // 调用sevice计算
         UserActionSequenceQueryServiceStateImpl service = new UserActionSequenceQueryServiceStateImpl();
-        int maxStep = service.queryActionSequenceHelper(eventList, ruleParams);
+        int maxStep = service.queryActionSequenceHelper2(eventList, ruleParams);
         System.out.println(maxStep);
 
 

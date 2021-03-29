@@ -38,10 +38,8 @@ public class UserActionCountQueryServiceStateImpl implements UserActionCountQuer
         // 取出历史明细数据
         Iterable<LogBean> logBeansIterable = eventState.get();
 
-
         // 统计每一个原子条件所发生的真实次数，就在原子条件参数对象中：realCnts
         queryActionCountsHelper(logBeansIterable, userActionCountParams);
-
 
         // 经过上面的方法执行后，每一个原子条件中，都拥有了一个真实发生次数，我们在此判断是否每个原子条件都满足
         for (RuleAtomicParam userActionCountParam : userActionCountParams) {
@@ -49,7 +47,6 @@ public class UserActionCountQueryServiceStateImpl implements UserActionCountQuer
                 return false;
             }
         }
-
 
         // 如果到达这一句话，说明上面的判断中，每个原子条件都满足，则返回整体结果true
         return true;
