@@ -14,7 +14,5 @@ public class Test {
         long x = System.currentTimeMillis() - 2*60*60*1000;
         System.out.println(x);
 
-
-        System.out.println(DateUtils.addHours(DateUtils.ceiling(new Date(), Calendar.HOUR),-2));
     }
 }
