@@ -32,11 +32,21 @@ public class RuleProcessFunction extends KeyedProcessFunction<String, LogBean, R
     @Override
     public void open(Configuration parameters) throws Exception {
 
+        /**
+         * 构造底层的核心查询服务
+         */
         userProfileQueryService = new UserProfileQueryServiceHbaseImpl();
         userActionCountQueryService = new UserActionCountQueryServiceStateImpl();
         userActionSequenceQueryService = new UserActionSequenceQueryServiceStateImpl();
+
+        /**
+         * 获取规则参数
+         */
         ruleParam = RuleSimulator.getRuleParam();
 
+        /**
+         * 准备一个存储明细事件的state
+         */
         ListStateDescriptor<LogBean> desc = new ListStateDescriptor<>("eventState", LogBean.class);
         eventState = getRuntimeContext().getListState(desc);
 

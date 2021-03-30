@@ -121,7 +121,7 @@ public class ActionLogGen {
                         kafkaProducer.send(record);
 
                         try {
-                            Thread.sleep(RandomUtils.nextInt(200, 201));
+                            Thread.sleep(RandomUtils.nextInt(100, 101));
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
