@@ -75,7 +75,17 @@
             <version>8.0.16</version>
         </dependency>
 
+        <!--<dependency>
+            <groupId>com.github.housepower</groupId>
+            <artifactId>clickhouse-native-jdbc</artifactId>
+            <version>1.6-stable</version>
+        </dependency>-->
 
+        <dependency>
+            <groupId>ru.yandex.clickhouse</groupId>
+            <artifactId>clickhouse-jdbc</artifactId>
+            <version>0.3.0</version>
+        </dependency>
 
     </dependencies>
 

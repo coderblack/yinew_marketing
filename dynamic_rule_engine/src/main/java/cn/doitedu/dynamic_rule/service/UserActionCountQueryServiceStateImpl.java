@@ -30,7 +30,7 @@ public class UserActionCountQueryServiceStateImpl implements UserActionCountQuer
      * @param ruleParam  规则整体参数对象
      * @return 条件是否满足
      */
-    public boolean queryActionCounts(ListState<LogBean> eventState, RuleParam ruleParam) throws Exception {
+    public boolean queryActionCounts(String deviceId,ListState<LogBean> eventState, RuleParam ruleParam) throws Exception {
 
         // 取出各个用户行为次数原子条件
         List<RuleAtomicParam> userActionCountParams = ruleParam.getUserActionCountParams();

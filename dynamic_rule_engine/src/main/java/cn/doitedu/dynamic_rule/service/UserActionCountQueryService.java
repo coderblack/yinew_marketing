@@ -14,5 +14,6 @@ import org.apache.flink.api.common.state.ListState;
  */
 public interface UserActionCountQueryService {
 
-    public boolean queryActionCounts(ListState<LogBean> eventState, RuleParam ruleParam) throws Exception;
+    public boolean queryActionCounts(String deviceId,ListState<LogBean> eventState, RuleParam ruleParam) throws Exception;
+
 }

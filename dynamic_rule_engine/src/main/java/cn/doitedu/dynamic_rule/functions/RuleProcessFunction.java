@@ -68,7 +68,7 @@ public class RuleProcessFunction extends KeyedProcessFunction<String, LogBean, R
             if(!profileMatch) return;
 
             // 查询行为次数条件
-            boolean countMatch = userActionCountQueryService.queryActionCounts(eventState, ruleParam);
+            boolean countMatch = userActionCountQueryService.queryActionCounts("",eventState, ruleParam);
             if(!countMatch) return;
 
             // 查询行为序列条件
