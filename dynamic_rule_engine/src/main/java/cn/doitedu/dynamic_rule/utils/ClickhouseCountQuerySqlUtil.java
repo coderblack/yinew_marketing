@@ -20,14 +20,14 @@ public class ClickhouseCountQuerySqlUtil {
     public static String getSql(String deviceId,RuleAtomicParam atomicParam){
 
         String templet1 =
-                "select " +
-                "\n deviceId,count() as cnt " +
+                " select " +
+                "\n   deviceId,count() as cnt " +
                 "\n from yinew_detail " +
                 "\n where deviceId= '" +deviceId+"'" +
-                "\n and " +
-                "\n eventId = '" + atomicParam.getEventId()+"' " +
-                "\n and " +
-                "\n timeStamp >= "+atomicParam.getRangeStart()+" and timeStamp <=" + atomicParam.getRangeEnd();
+                "\n   and " +
+                "\n  eventId = '" + atomicParam.getEventId()+"' " +
+                "\n   and " +
+                "\n  timeStamp >= "+atomicParam.getRangeStart()+" and timeStamp <=" + atomicParam.getRangeEnd();
 
 
         String templet3 = "\n group by deviceId";
@@ -40,7 +40,7 @@ public class ClickhouseCountQuerySqlUtil {
         StringBuffer sb = new StringBuffer();
         for (Map.Entry<String, String> entry : entries) {
             // "and properties['pageId'] = 'page006'"
-            sb.append("\n and properties['"+entry.getKey()+"']='"+entry.getValue()+"'");
+            sb.append("\n   and properties['"+entry.getKey()+"'] = '"+entry.getValue()+"'");
 
         }
 

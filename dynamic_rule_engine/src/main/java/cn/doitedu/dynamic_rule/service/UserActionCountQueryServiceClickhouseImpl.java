@@ -16,18 +16,29 @@ import java.util.List;
 public class UserActionCountQueryServiceClickhouseImpl implements UserActionCountQueryService{
 
 
-    Connection conn;
+    private Connection conn;
+
     public UserActionCountQueryServiceClickhouseImpl() throws Exception {
+        // 获取clickhouse的jdbc连接对象
         conn = ConnectionUtils.getClickhouseConnection();
     }
 
 
+    /**
+     * 根据给定的deviceId，查询这个人是否满足ruleParam中的所有“次数类"规则条件
+     *
+     * @param deviceId  要查询的用户
+     * @param eventState  flink中存储明细事件的state，本实现类中不需要
+     * @param ruleParam 规则参数对象
+     * @return 条件查询的结果是否成立
+     * @throws Exception
+     */
     @Override
     public boolean queryActionCounts(String deviceId, ListState<LogBean> eventState,RuleParam ruleParam) throws Exception {
 
         List<RuleAtomicParam> userActionCountParams = ruleParam.getUserActionCountParams();
 
-        // 遍历每一个原子条件
+        // 遍历每一个原子条件进行查询判断
         for (RuleAtomicParam atomicParam : userActionCountParams) {
 
             // 对当前的原子条件拼接查询sql
@@ -38,17 +49,20 @@ public class UserActionCountQueryServiceClickhouseImpl implements UserActionCoun
             Statement statement = conn.createStatement();
             ResultSet resultSet = statement.executeQuery(sql);
 
-            // deviceId,cnt
-            // 000001  ,6
+            /**
+             * deviceId,cnt
+             *  000001 ,6
+             */
             while(resultSet.next()){
                 int realCnt = (int) resultSet.getLong(2);
                 atomicParam.setRealCnts(realCnt);
             }
 
+            // 只要有一个原子条件查询结果不满足，则直接返回最终结果false
             if(atomicParam.getRealCnts()<atomicParam.getCnts()) return false;
         }
 
-        // 如果达到这一句话，说明上面的每一个原子条件查询后都满足规则，那么返回最终结果true
+        // 如果走到这一句代码，说明上面的每一个原子条件查询后都满足规则，那么返回最终结果true
         return true;
     }
 }
