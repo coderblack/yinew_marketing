@@ -35,6 +35,10 @@ public class RuleAtomicParam implements Serializable {
     // 要求的事件发生时间段结束
     private long rangeEnd;
 
+    // 条件对应的clickhouse查询sql
+    private String countQuerySql;
+
+
     // 用于记录查询服务所返回的查询值
     private int realCnts;
 

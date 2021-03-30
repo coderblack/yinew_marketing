@@ -37,7 +37,7 @@ public class ClickHouseQueryTest {
                     try {
                         long s = System.currentTimeMillis();
                         ss.add(s);
-                        for (int i = 0; i < 10000; i++) {
+                        for (int i = 0; i < 1000; i++) {
                             stmt.setString(1, StringUtils.leftPad(i + "", 6, "0"));
                             ResultSet resultSet = stmt.executeQuery();
                             while (resultSet.next()) {
@@ -45,6 +45,7 @@ public class ClickHouseQueryTest {
                             }
                         }
                         long e = System.currentTimeMillis();
+                        System.out.println(e-s);
                         ee.add(e);
                     } catch (Exception e) {
                     }
@@ -52,12 +53,12 @@ public class ClickHouseQueryTest {
             }).start();
         }
 
-        Thread.sleep(10000);
+        Thread.sleep(8000);
 
         Collections.sort(ss);
         Collections.sort(ee);
 
-        System.out.println(ee.get(ee.size()-1) - ss.get(0));
+        //System.out.println(ee.get(ee.size()-1) - ss.get(0));
 
 
     }

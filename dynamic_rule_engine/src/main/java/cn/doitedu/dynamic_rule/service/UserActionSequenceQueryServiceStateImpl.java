@@ -35,7 +35,7 @@ public class UserActionSequenceQueryServiceStateImpl implements UserActionSequen
      * @return 条件成立与否
      */
     @Override
-    public boolean queryActionSequence(ListState<LogBean> eventState, RuleParam ruleParam) throws Exception {
+    public boolean queryActionSequence(String deviceId,ListState<LogBean> eventState, RuleParam ruleParam) throws Exception {
 
 
         Iterable<LogBean> logBeans = eventState.get();

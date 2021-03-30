@@ -29,8 +29,8 @@ public class RuleSimulator {
 
         // 构造画像条件
         HashMap<String, String> userProfileParams = new HashMap<>();
-        userProfileParams.put("tag12","v92");
-        userProfileParams.put("tag22","v3");
+        userProfileParams.put("tag42","v8");
+        //userProfileParams.put("tag47","v53");
         ruleParam.setUserProfileParams(userProfileParams);
 
 
@@ -40,8 +40,8 @@ public class RuleSimulator {
         HashMap<String, String> paramProps1 = new HashMap<>();
         paramProps1.put("p1","v1");
         count1.setProperties(paramProps1);
-        count1.setRangeStart(-1);
-        count1.setRangeEnd(-1);
+        count1.setRangeStart(0);
+        count1.setRangeEnd(Long.MAX_VALUE);
         count1.setCnts(2);
 
         RuleAtomicParam count2 = new RuleAtomicParam();
@@ -49,9 +49,9 @@ public class RuleSimulator {
         HashMap<String, String> paramProps2 = new HashMap<>();
         paramProps2.put("p2","v3");
         count2.setProperties(paramProps2);
-        count2.setRangeStart(-1);
-        count2.setRangeEnd(-1);
-        count2.setCnts(2);
+        count2.setRangeStart(1617094800000L);
+        count2.setRangeEnd(Long.MAX_VALUE);
+        count2.setCnts(1);
 
 
         ArrayList<RuleAtomicParam> countParams = new ArrayList<>();
@@ -60,22 +60,22 @@ public class RuleSimulator {
         ruleParam.setUserActionCountParams(countParams);
 
 
-        // 行为序列条件(3个事件的序列）
+        // 行为序列（行为路径）条件(2个事件的序列）
         RuleAtomicParam param1 = new RuleAtomicParam();
         param1.setEventId("A");
         HashMap<String, String> seqProps1 = new HashMap<>();
         seqProps1.put("p1","v1");
         param1.setProperties(seqProps1);
-        param1.setRangeStart(-1);
-        param1.setRangeEnd(-1);
+        param1.setRangeStart(0);
+        param1.setRangeEnd(Long.MAX_VALUE);
 
         RuleAtomicParam param2 = new RuleAtomicParam();
         param2.setEventId("C");
         HashMap<String, String> seqProps2 = new HashMap<>();
         seqProps2.put("p2","v2");
         param2.setProperties(seqProps2);
-        param2.setRangeStart(-1);
-        param2.setRangeEnd(-1);
+        param2.setRangeStart(0);
+        param2.setRangeEnd(Long.MAX_VALUE);
 
 
         ArrayList<RuleAtomicParam> ruleParams = new ArrayList<>();

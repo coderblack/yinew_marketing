@@ -72,7 +72,7 @@ public class RuleProcessFunction extends KeyedProcessFunction<String, LogBean, R
             if(!countMatch) return;
 
             // 查询行为序列条件
-            boolean sequenceMatch = userActionSequenceQueryService.queryActionSequence(eventState, ruleParam);
+            boolean sequenceMatch = userActionSequenceQueryService.queryActionSequence(null,eventState, ruleParam);
             if(!sequenceMatch) return;
 
 

@@ -64,7 +64,7 @@ public class ActionLogGen {
 
 
         // 创建多个线程，并行执行
-        for(int i=0;i<40;i++) {
+        for(int i=0;i<10;i++) {
             new Thread(new Runnable() {
 
                 @Override
@@ -80,7 +80,7 @@ public class ActionLogGen {
                     while (true) {
                         LogBean logBean = new LogBean();
                         // 生成的账号形如： 004078
-                        String account = StringUtils.leftPad(RandomUtils.nextInt(1, 100) + "", 6, "0");
+                        String account = StringUtils.leftPad(RandomUtils.nextInt(1, 10) + "", 6, "0");
                         logBean.setAccount(account);
                         logBean.setAppId("cn.doitedu.yinew");
                         logBean.setAppVersion("2.5");
@@ -121,7 +121,7 @@ public class ActionLogGen {
                         kafkaProducer.send(record);
 
                         try {
-                            Thread.sleep(RandomUtils.nextInt(100, 101));
+                            Thread.sleep(RandomUtils.nextInt(2000, 3001));
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
