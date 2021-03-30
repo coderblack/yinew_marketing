@@ -49,12 +49,15 @@ public class UserActionCountQueryServiceClickhouseImpl implements UserActionCoun
             Statement statement = conn.createStatement();
             ResultSet resultSet = statement.executeQuery(sql);
 
-            /**
+            /* *
              * deviceId,cnt
              *  000001 ,6
-             */
+             **/
+            // resultSet只有一行，所以while只循环一次
             while(resultSet.next()){
+                // 从结果中取出cnt字段
                 int realCnt = (int) resultSet.getLong(2);
+                // 将查询结果赛回规则参数对象
                 atomicParam.setRealCnts(realCnt);
             }
 
