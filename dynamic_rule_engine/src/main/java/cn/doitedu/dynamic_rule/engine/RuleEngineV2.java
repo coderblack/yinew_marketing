@@ -27,7 +27,7 @@ public class RuleEngineV2 {
         // 添加一个消费kafka中用户实时行为事件数据的source
         DataStreamSource<String> logStream = env.addSource(SourceFunctions.getKafkaEventSource());
 
-        // 将json格式的数据，转成 logbean格式的数据
+        // 将json格式的数据，转成 logBean格式的数据
         SingleOutputStreamOperator<LogBean> beanStream = logStream.map(new Json2BeanMapFunction());
 
         // 对数据按用户deviceid分key
