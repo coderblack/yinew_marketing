@@ -15,7 +15,8 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
  * @contact qq:657270652 wx:doit_edu
  * @site www.doitedu.cn
  * @date 2021-03-28
- * @desc 静态规则引擎版本1主程序
+ * @desc 静态规则引擎版本2主程序
+ * 相对于v1.0来说，只有一处改变：  keyed.process（这里用了 RuleProcessFunctionV2）
  */
 public class RuleEngineV2 {
 
