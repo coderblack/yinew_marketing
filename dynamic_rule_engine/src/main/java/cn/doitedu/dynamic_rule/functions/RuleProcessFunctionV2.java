@@ -117,10 +117,10 @@ public class RuleProcessFunctionV2 extends KeyedProcessFunction<String, LogBean,
             List<RuleAtomicParam> userActionCountParams = ruleParam.getUserActionCountParams();
             for (RuleAtomicParam userActionCountParam : userActionCountParams) {
                 if(userActionCountParam.getRangeStart()<splitPoint){
-                    // 如果条件起始时间<2小时分界点，放入远期查询参数list
+                    // 如果条件起始时间<2小时分界点，放入远期条件租
                     farRangeParams.add(userActionCountParam);
                 }else{
-                    // 否则，放入近期查询参数list
+                    // 如果条件起始时间>=2小时分界点，放入近期条件组
                     nearRangeParams.add(userActionCountParam);
                 }
             }
