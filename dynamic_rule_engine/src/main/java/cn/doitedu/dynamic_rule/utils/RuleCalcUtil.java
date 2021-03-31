@@ -4,6 +4,7 @@ import cn.doitedu.dynamic_rule.pojo.LogBean;
 import cn.doitedu.dynamic_rule.pojo.RuleAtomicParam;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -54,6 +55,38 @@ public class RuleCalcUtil {
 
         return b && eventBean.getTimeStamp()>= (start==-1?0:start) && eventBean.getTimeStamp()<= (end==-1?Long.MAX_VALUE:end);
 
+    }
+
+
+    public static String getBufferKey(String deviceId,RuleAtomicParam atomicParam){
+        // deviceId-EVENT-p1-v1-p2-v2
+        StringBuffer sb = new StringBuffer();
+        sb.append(deviceId).append("-").append(atomicParam.getEventId());
+
+        HashMap<String, String> properties = atomicParam.getProperties();
+        Set<Map.Entry<String, String>> entries = properties.entrySet();
+        for (Map.Entry<String, String> entry : entries) {
+            sb.append("-").append(entry.getKey()).append("-").append(entry.getValue());
+        }
+
+        return sb.toString();
+    }
+
+    public static String getBufferKey(String deviceId, List<RuleAtomicParam> paramList){
+        // deviceId-EVENT1-p1-v1-p2-v2-EVENT2-p1-v1-p2-v2
+        StringBuffer sb = new StringBuffer();
+        sb.append(deviceId);
+
+        for (RuleAtomicParam ruleAtomicParam : paramList) {
+            sb.append("-").append(ruleAtomicParam.getEventId());
+            HashMap<String, String> properties = ruleAtomicParam.getProperties();
+            Set<Map.Entry<String, String>> entries = properties.entrySet();
+            for (Map.Entry<String, String> entry : entries) {
+                sb.append("-").append(entry.getKey()).append("-").append(entry.getValue());
+            }
+        }
+
+        return sb.toString();
     }
 
 

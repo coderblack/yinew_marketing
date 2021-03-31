@@ -43,6 +43,17 @@ public class RuleSimulator {
         count1.setRangeStart(0);
         count1.setRangeEnd(Long.MAX_VALUE);
         count1.setCnts(2);
+        String sql1 = "select\n" +
+                "    deviceId,\n" +
+                "    count(1) as cnt\n" +
+                "from event_detail\n" +
+                "where deviceId='${deviceid}' and eventId='B' and properties['p1']='v1'\n" +
+                "  and timeStamp between 0 and 6615900580000\n" +
+                "group by deviceId\n" +
+                ";";
+        count1.setCountQuerySql(sql1);
+
+
 
         RuleAtomicParam count2 = new RuleAtomicParam();
         count2.setEventId("D");
@@ -52,6 +63,17 @@ public class RuleSimulator {
         count2.setRangeStart(1617094800000L);
         count2.setRangeEnd(Long.MAX_VALUE);
         count2.setCnts(1);
+        String sql2 = "select\n" +
+                "    deviceId,\n" +
+                "    count(1) as cnt\n" +
+                "from event_detail\n" +
+                "where deviceId='${deviceid}' and eventId='D' and properties['p2']='v3'\n" +
+                "  and timeStamp between 1617094800000 and 6615900580000\n" +
+                "group by deviceId \n" +
+                ";";
+        count2.setCountQuerySql(sql2);
+
+
 
 
         ArrayList<RuleAtomicParam> countParams = new ArrayList<>();
@@ -83,6 +105,34 @@ public class RuleSimulator {
         ruleParams.add(param2);
 
         ruleParam.setUserActionSequenceParams(ruleParams);
+        String sql = "SELECT\n" +
+                "  deviceId,\n" +
+                "  sequenceMatch('.*(?1).*(?2).*')(\n" +
+                "    toDateTime(`timeStamp`),\n" +
+                "    eventId = 'A' and properties['p1']='v1',\n" +
+                "    eventId = 'C' and properties['p2']='v2'\n" +
+                "  ) as isMatch2,\n" +
+                "\n" +
+                "  sequenceMatch('.*(?1).*')(\n" +
+                "    toDateTime(`timeStamp`),\n" +
+                "    eventId = 'A' and properties['p1']='v1',\n" +
+                "    eventId = 'C' and properties['p2']='v2'\n" +
+                "  ) as isMatch1\n" +
+                "\n" +
+                "from yinew_detail\n" +
+                "where\n" +
+                "  deviceId = '${deviceid}'\n" +
+                "    and\n" +
+                "  timeStamp >= 0\n" +
+                "    and\n" +
+                "  timeStamp <= 6235295739479\n" +
+                "    and\n" +
+                "  (\n" +
+                "        (eventId='A' and properties['p1']='v1')\n" +
+                "     or (eventId = 'C' and properties['p2']='v2')\n" +
+                "  )\n" +
+                "group by deviceId;";
+        ruleParam.setActionSequenceQuerySql(sql);
 
 
         return  ruleParam;

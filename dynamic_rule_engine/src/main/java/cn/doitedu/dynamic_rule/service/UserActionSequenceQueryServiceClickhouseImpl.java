@@ -59,7 +59,7 @@ public class UserActionSequenceQueryServiceClickhouseImpl implements UserActionS
         long e = System.currentTimeMillis();
 
         // 将结果塞回规则参数
-        ruleParam.setUserActionSequenceQueriedMaxStep(maxStep);
+        ruleParam.setUserActionSequenceQueriedMaxStep(ruleParam.getUserActionSequenceQueriedMaxStep()+maxStep);
 
         System.out.println("查询了clickhouse,耗时：" + (e-s) +" ms,查询到的最大匹配步骤为：" + maxStep +",条件总步骤数为： " + totalStep);
 

@@ -19,7 +19,7 @@ import java.util.List;
  * @date 2021-03-31
  * @desc 查询路由模块
  */
-public class QueryRouter {
+public class QueryRouterV3 {
 
     private UserProfileQueryService userProfileQueryService;
 
@@ -30,7 +30,7 @@ public class QueryRouter {
     private UserActionSequenceQueryService userActionSequenceQueryClickhouseService;
 
 
-    public QueryRouter() throws Exception {
+    public QueryRouterV3() throws Exception {
 
         userProfileQueryService = new UserProfileQueryServiceHbaseImpl();
 
@@ -223,6 +223,10 @@ public class QueryRouter {
                 // 执行state查询
                 boolean b2 = userActionSequenceQueryStateService.queryActionSequence(logBean.getDeviceId(), eventState, ruleParam);
                 int nearMaxStep = ruleParam.getUserActionSequenceQueriedMaxStep();
+
+                // 将整合最终结果，塞回参数对象
+                ruleParam.setUserActionSequenceQueriedMaxStep(farMaxStep+nearMaxStep);
+
                 return farMaxStep+nearMaxStep>=totalSteps;
             }
 
