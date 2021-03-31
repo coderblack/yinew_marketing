@@ -6,7 +6,6 @@ import cn.doitedu.dynamic_rule.pojo.RuleParam;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.flink.api.common.state.ListState;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
