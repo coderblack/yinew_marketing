@@ -1,6 +1,7 @@
 package cn.doitedu.dynamic_rule.service;
 
 import cn.doitedu.dynamic_rule.pojo.LogBean;
+import cn.doitedu.dynamic_rule.pojo.RuleAtomicParam;
 import cn.doitedu.dynamic_rule.pojo.RuleParam;
 import org.apache.flink.api.common.state.ListState;
 
@@ -15,5 +16,7 @@ import org.apache.flink.api.common.state.ListState;
 public interface UserActionCountQueryService {
 
     public boolean queryActionCounts(String deviceId,ListState<LogBean> eventState, RuleParam ruleParam) throws Exception;
+
+    public boolean queryActionCounts(String deviceId,ListState<LogBean> eventState, RuleAtomicParam atomicParam) throws Exception;
 
 }

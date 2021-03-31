@@ -79,4 +79,27 @@ public class UserActionCountQueryServiceStateImpl implements UserActionCountQuer
     }
 
 
+    /**
+     * 接收一个原子count类条件
+     * 进行查询，并返回是否匹配
+     * 并且，将查询到的realcount塞回参数对象
+     * @param deviceId
+     * @param eventState
+     * @param atomicParam
+     * @return
+     * @throws Exception
+     */
+    public boolean queryActionCounts(String deviceId,ListState<LogBean> eventState, RuleAtomicParam atomicParam) throws Exception {
+
+        Iterable<LogBean> logBeans = eventState.get();
+        for (LogBean logBean : logBeans) {
+            boolean b = RuleCalcUtil.eventBeanMatchEventParam(logBean, atomicParam, true);
+            // 如果事件和条件匹配，则真实次数+1
+            if(b) atomicParam.setRealCnts(atomicParam.getRealCnts()+1);
+        }
+
+        return atomicParam.getRealCnts() >= atomicParam.getCnts();
+    }
+
+
 }

@@ -105,7 +105,7 @@ public class RuleProcessFunctionV2 extends KeyedProcessFunction<String, LogBean,
 
 
             /**
-             * 查询事件次数类条件是否满足
+             * 查询事件count类条件是否满足
              * 这里要考虑，条件的时间跨度问题
              * 如果条件的时间跨度在近2小时内，那么，就把这些条件交给stateService去计算
              * 如果条件的时间跨度在2小时之前，那么，就把这些条件交给clickhouseService去计算
@@ -144,7 +144,7 @@ public class RuleProcessFunctionV2 extends KeyedProcessFunction<String, LogBean,
 
 
             /**
-             * 序列类条件的查询
+             * sequence条件的查询
              * 本项目对序列类条件进行了简化
              * 一个规则中，只存在一个“序列模式”
              * 它的条件时间跨度，设置在了这个“序列模式”中的每一个原子条件中，且都一致
@@ -152,17 +152,19 @@ public class RuleProcessFunctionV2 extends KeyedProcessFunction<String, LogBean,
             // 取出规则中的“序列模式”
             List<RuleAtomicParam> userActionSequenceParams = ruleParam.getUserActionSequenceParams();
 
+            // 如果序列模型中的起始时间>=2小时分界点，则交给state服务模块去查询
+            if(userActionSequenceParams.size()>0 && userActionSequenceParams.get(0).getRangeStart()>=splitPoint){
+                boolean b = userActionSequenceQueryStateService.queryActionSequence("", eventState, ruleParam);
+                if(!b) return ;
+            }
+
+
             // 如果序列模型中的起始时间<2小时分界点，则交给clickhouse服务模块去查询
             if(userActionSequenceParams!=null && userActionSequenceParams.size()>0 && userActionSequenceParams.get(0).getRangeStart()<splitPoint){
                 boolean b = userActionSequenceQueryClickhouseService.queryActionSequence(logBean.getDeviceId(), null, ruleParam);
                 if(!b) return ;
             }
 
-            // 如果序列模型中的起始时间>=2小时分界点，则交给state服务模块去查询
-            if(userActionSequenceParams.size()>0 && userActionSequenceParams.get(0).getRangeStart()>=splitPoint){
-                boolean b = userActionSequenceQueryStateService.queryActionSequence("", eventState, ruleParam);
-                if(!b) return ;
-            }
 
             // 输出一个规则匹配成功的结果
             ResultBean resultBean = new ResultBean();
