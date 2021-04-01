@@ -25,6 +25,15 @@ public class UserActionSequenceQueryServiceClickhouseImpl implements UserActionS
         conn = ConnectionUtils.getClickhouseConnection();
     }
 
+    /**
+     * 从clickhouse中查询行为序列条件是否满足
+     * TODO 本方法不需要state，硬生生遗留一个state参数，很别扭，待改造
+     * @param deviceId
+     * @param eventState
+     * @param ruleParam
+     * @return
+     * @throws Exception
+     */
     @Override
     public boolean queryActionSequence(String deviceId,ListState<LogBean> eventState, RuleParam ruleParam) throws Exception {
         // 获取规则中，路径模式的总步骤数

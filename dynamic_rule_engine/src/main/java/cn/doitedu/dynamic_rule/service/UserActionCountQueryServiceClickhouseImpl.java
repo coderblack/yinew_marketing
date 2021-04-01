@@ -25,8 +25,8 @@ public class UserActionCountQueryServiceClickhouseImpl implements UserActionCoun
 
 
     /**
+     * TODO 本方法不需要state，硬生生遗留一个state参数，很别扭，待改造
      * 根据给定的deviceId，查询这个人是否满足ruleParam中的所有“次数类"规则条件
-     *
      * @param deviceId   要查询的用户
      * @param eventState flink中存储明细事件的state，本实现类中不需要
      * @param ruleParam  规则参数对象
@@ -50,7 +50,8 @@ public class UserActionCountQueryServiceClickhouseImpl implements UserActionCoun
     }
 
     /**
-     *
+     * TODO 本方法不需要state，硬生生遗留一个state参数，很别扭，待改造
+     * 查询单个行为count条件是否成立
      * @param deviceId 设备id
      * @param eventState 事件state
      * @param atomicParam 原子条件

@@ -29,7 +29,6 @@ public class UserActionSequenceQueryServiceStateImpl implements UserActionSequen
      * <p>
      * 查询规则条件中的行为序列条件是否满足
      * 会将查询到的最大匹配步骤，set回 ruleParam对象中
-     *
      * @param eventState flink中存储用户事件明细的state
      * @param ruleParam  规则参数对象
      * @return 条件成立与否
