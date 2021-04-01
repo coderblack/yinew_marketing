@@ -59,6 +59,7 @@ public class UserProfileDataGen {
             }
 
         }
+        if(puts.size()>0) table.put(puts);
 
         conn.close();
     }
