@@ -20,7 +20,7 @@ import org.apache.flink.util.Collector;
  * @contact qq:657270652 wx:doit_edu
  * @site www.doitedu.cn
  * @date 2021-03-28
- * @desc 规则核心处理函数版本3.0
+ * @desc 规则核心处理函数版本4.0
  */
 public class RuleProcessFunctionV4 extends KeyedProcessFunction<String, LogBean, ResultBean> {
 
