@@ -50,13 +50,12 @@ public class UserActionCountQueryServiceClickhouseImpl implements UserActionCoun
     }
 
     /**
-     * TODO
      *
-     * @param deviceId
-     * @param eventState
-     * @param atomicParam
-     * @return
-     * @throws Exception
+     * @param deviceId 设备id
+     * @param eventState 事件state
+     * @param atomicParam 原子条件
+     * @return 是否成立
+     * @throws Exception 异常
      */
     @Override
     public boolean queryActionCounts(String deviceId, ListState<LogBean> eventState, RuleAtomicParam atomicParam) throws Exception {

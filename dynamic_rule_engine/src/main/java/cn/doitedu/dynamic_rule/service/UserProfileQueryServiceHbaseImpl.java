@@ -38,12 +38,10 @@ public class UserProfileQueryServiceHbaseImpl implements UserProfileQueryService
     /**
      * 传入一个用户号，以及要查询的条件
      * 返回这些条件是否满足
-     * TODO 本查询只返回了成立与否，而查询到的画像数据值并没有返回
-     * TODO 可能为将来的缓存模块带来不便，有待改造
-     *
-     * @param deviceId
-     * @param ruleParam
-     * @return
+     * TODO 本查询只返回了成立与否，而查询到的画像数据值并没有返回 可能为将来的缓存模块带来不便，有待改造
+     * @param deviceId 设备id
+     * @param ruleParam 规则参数对象
+     * @return 是否成立
      */
     @Override
     public boolean judgeProfileCondition(String deviceId, RuleParam ruleParam){
