@@ -62,6 +62,7 @@ public class UserActionCountQueryServiceClickhouseImpl implements UserActionCoun
     public boolean queryActionCounts(String deviceId, ListState<LogBean> eventState, RuleAtomicParam atomicParam) throws Exception {
         // 对当前的原子条件拼接查询sql
         String sql = atomicParam.getCountQuerySql();
+        // TODO 需要将sql中的deviceId占位符替换成真实deviceId
         System.out.println(sql);
 
         // 获取一个clickhouse 的jdbc连接

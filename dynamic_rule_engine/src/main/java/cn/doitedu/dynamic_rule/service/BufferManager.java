@@ -21,22 +21,35 @@ public class BufferManager {
         jedis = new Jedis("hdp02", 6379);
     }
 
-    // 获取缓存中的数据
+    /**
+     * 获取缓存数据并返回
+     * @param bufferKey 缓存key
+     * @param paramRangeStart 缓存数据时间start
+     * @param paramRangeEnd 缓存数据时间end
+     * @param threshold 缓存数据对应查询条件的阈值
+     * @return 缓存数据结果
+     */
     public BufferResult getBufferData(String bufferKey,long paramRangeStart,long paramRangeEnd,int threshold){
-
-        BufferResult bufferResult = new BufferResult();
-        bufferResult.setBufferAvailableLevel(BufferAvailableLevel.UN_AVL);
-
-        // data:   2|t1,t8
+        /*
+         *  解析缓存数据
+         *  格式:   2|t1,t8
+         *****/
         String data = jedis.get(bufferKey);
+        // TODO data可能为null，这里直接切，会产生空指针异常
         String[] split = data.split("\\|");
         String[] timeRange = split[1].split(",");
 
+        // 准备缓存返回结果实体对象
+        BufferResult bufferResult = new BufferResult();
+        bufferResult.setBufferAvailableLevel(BufferAvailableLevel.UN_AVL);
         bufferResult.setBufferKey(bufferKey);
         bufferResult.setBufferValue(Integer.parseInt(split[0]));
         bufferResult.setBufferRangeStart(Long.parseLong(timeRange[0]));
         bufferResult.setBufferRangeEnd(Long.parseLong(timeRange[1]));
 
+        /**
+         * 判断缓存有效性： 完全有效
+         */
         if(paramRangeStart<= bufferResult.getBufferRangeStart()
                 && paramRangeEnd>=bufferResult.getBufferRangeEnd()
                 && bufferResult.getBufferValue()>=threshold){
@@ -44,6 +57,9 @@ public class BufferManager {
             bufferResult.setBufferAvailableLevel(BufferAvailableLevel.WHOLE_AVL);
         }
 
+        /**
+         * 判断缓存有效性： 部分有效
+         */
         if(paramRangeStart == bufferResult.getBufferRangeStart() && paramRangeEnd>=bufferResult.getBufferRangeEnd()){
 
             bufferResult.setBufferAvailableLevel(BufferAvailableLevel.PARTIAL_AVL);

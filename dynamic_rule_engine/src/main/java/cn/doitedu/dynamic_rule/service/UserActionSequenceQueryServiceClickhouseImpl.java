@@ -27,21 +27,19 @@ public class UserActionSequenceQueryServiceClickhouseImpl implements UserActionS
 
     @Override
     public boolean queryActionSequence(String deviceId,ListState<LogBean> eventState, RuleParam ruleParam) throws Exception {
-
-
         // 获取规则中，路径模式的总步骤数
         int totalStep = ruleParam.getUserActionSequenceParams().size();
 
         // 取出查询sql
         String sql = ruleParam.getActionSequenceQuerySql();
+        // TODO 需要将sql中的deviceId占位符替换成真实deviceId
         Statement stmt = conn.createStatement();
         // 执行查询
         long s = System.currentTimeMillis();
         ResultSet resultSet = stmt.executeQuery(sql);
 
 
-        // 从返回结果中进行条件判断
-        /**
+        /* 从返回结果中进行条件判断
          * ┌─deviceId─┬─isMatch3─┬─isMatch2─┬─isMatch1─┐
          * │ 000001   │       0  │        0 │        1 │
          * └──────────┴──────────┴──────────┴──────────┘
@@ -49,12 +47,10 @@ public class UserActionSequenceQueryServiceClickhouseImpl implements UserActionS
          */
         int maxStep = 0;
         while(resultSet.next()){   // 返回结果最多就1行，这个while就走一次!!!
-
-            // 对一行结果中的1进行累加
+            // 对一行结果中的1进行累加，累加结果即完成的最大步骤数
             for(int i =2;i<totalStep+2;i++) {
                 maxStep += resultSet.getInt(i);
             }
-
         }
         long e = System.currentTimeMillis();
 
