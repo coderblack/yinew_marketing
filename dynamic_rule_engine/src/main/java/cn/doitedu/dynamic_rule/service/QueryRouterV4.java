@@ -41,8 +41,9 @@ public class QueryRouterV4 {
     // 缓存管理器
     BufferManager bufferManager;
 
+    ListState<LogBean> eventState;
 
-    public QueryRouterV4() throws Exception {
+    public QueryRouterV4(ListState<LogBean> eventState) throws Exception {
 
         userProfileQueryService = new UserProfileQueryServiceHbaseImpl();
 
@@ -62,6 +63,9 @@ public class QueryRouterV4 {
          * 构造一个缓存管理器
          */
         bufferManager = new BufferManager();
+
+        this.eventState = eventState;
+
     }
 
     // 控制画像条件查询路由
@@ -78,11 +82,10 @@ public class QueryRouterV4 {
      *
      * @param logBean
      * @param ruleParam
-     * @param eventState
      * @return
      * @throws Exception
      */
-    public boolean countConditionQuery(LogBean logBean, RuleParam ruleParam, ListState<LogBean> eventState) throws Exception {
+    public boolean countConditionQuery(LogBean logBean, RuleParam ruleParam) throws Exception {
 
         // 取出规则中的count类条件
         List<RuleAtomicParam> userActionCountParams = ruleParam.getUserActionCountParams();
@@ -195,7 +198,7 @@ public class QueryRouterV4 {
     /**
      * 控制sequence类条件查询路由
      */
-    public boolean sequenceConditionQuery(LogBean logBean, RuleParam ruleParam, ListState<LogBean> eventState) throws Exception {
+    public boolean sequenceConditionQuery(LogBean logBean, RuleParam ruleParam) throws Exception {
 
         // 取出规则中的序列条件
         List<RuleAtomicParam> userActionSequenceParams = ruleParam.getUserActionSequenceParams();

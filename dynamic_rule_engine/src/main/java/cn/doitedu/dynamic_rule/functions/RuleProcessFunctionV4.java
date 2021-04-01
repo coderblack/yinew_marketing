@@ -33,11 +33,6 @@ public class RuleProcessFunctionV4 extends KeyedProcessFunction<String, LogBean,
     @Override
     public void open(Configuration parameters) throws Exception {
 
-
-        // 构造一个查询路由控制器
-        queryRouterV4 = new QueryRouterV4();
-
-
         /**
          * 获取规则参数
          * TODO 规则的获取，现在是通过模拟器生成
@@ -53,6 +48,9 @@ public class RuleProcessFunctionV4 extends KeyedProcessFunction<String, LogBean,
         StateTtlConfig ttlConfig = StateTtlConfig.newBuilder(Time.hours(2)).updateTtlOnCreateAndWrite().build();
         desc.enableTimeToLive(ttlConfig);
         eventState = getRuntimeContext().getListState(desc);
+
+        // 构造一个查询路由控制器
+        queryRouterV4 = new QueryRouterV4(eventState);
 
     }
 
@@ -71,8 +69,6 @@ public class RuleProcessFunctionV4 extends KeyedProcessFunction<String, LogBean,
         // 超过2小时的logBean会被自动清除（前面设置了ttl存活时长）
         eventState.add(logBean);
 
-
-
         /**
          * 主逻辑，进行规则触发和计算
          */
@@ -82,10 +78,10 @@ public class RuleProcessFunctionV4 extends KeyedProcessFunction<String, LogBean,
             boolean b1 = queryRouterV4.profileQuery(logBean, ruleParam);
             if(!b1) return;
 
-            boolean b2 = queryRouterV4.sequenceConditionQuery(logBean, ruleParam, eventState);
+            boolean b2 = queryRouterV4.sequenceConditionQuery(logBean, ruleParam);
             if(!b2) return;
 
-            boolean b3 = queryRouterV4.countConditionQuery(logBean, ruleParam, eventState);
+            boolean b3 = queryRouterV4.countConditionQuery(logBean, ruleParam);
             if(!b3) return;
 
 

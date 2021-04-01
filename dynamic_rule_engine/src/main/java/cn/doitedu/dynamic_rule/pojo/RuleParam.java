@@ -38,7 +38,6 @@ public class RuleParam implements Serializable {
     // 规则中的行为次数类条件
     private List<RuleAtomicParam> userActionCountParams;
 
-
     // 规则中的行为序列类条件
     private List<RuleAtomicParam> userActionSequenceParams;
 
