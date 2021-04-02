@@ -21,6 +21,18 @@ public class BufferManager {
         jedis = new Jedis("hdp02", 6379);
     }
 
+
+    /**
+     * 获取缓存数据并返回
+     * @param bufferKey  缓存key
+     * @param atomicParam  规则原子条件对象
+     * @return 缓存数据
+     */
+    public BufferResult getBufferData(String bufferKey,RuleAtomicParam atomicParam){
+        BufferResult bufferResult = getBufferData(bufferKey, atomicParam.getRangeStart(), atomicParam.getRangeEnd(), atomicParam.getCnts());
+        return bufferResult;
+    }
+
     /**
      * 获取缓存数据并返回
      * @param bufferKey 缓存key
