@@ -3,7 +3,6 @@ package cn.doitedu.dynamic_rule.service;
 import cn.doitedu.dynamic_rule.pojo.BufferAvailableLevel;
 import cn.doitedu.dynamic_rule.pojo.BufferResult;
 import cn.doitedu.dynamic_rule.pojo.RuleAtomicParam;
-import cn.doitedu.dynamic_rule.pojo.RuleParam;
 import redis.clients.jedis.Jedis;
 
 /**
