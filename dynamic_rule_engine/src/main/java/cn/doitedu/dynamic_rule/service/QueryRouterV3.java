@@ -37,7 +37,7 @@ public class QueryRouterV3 {
         /**
          * 构造底层的核心STATE查询服务
          */
-        userActionCountQueryStateService = new UserActionCountQueryServiceStateImpl();
+        userActionCountQueryStateService = new UserActionCountQueryServiceStateImpl(null);
         userActionSequenceQueryStateService = new UserActionSequenceQueryServiceStateImpl();
 
         /**
@@ -103,7 +103,7 @@ public class QueryRouterV3 {
             // 将规则总参数对象中的“次数类条件”覆盖成： 近期条件组
             ruleParam.setUserActionCountParams(nearRangeParams);
             // 交给stateService对这一组条件进行计算
-            boolean countMatch = userActionCountQueryStateService.queryActionCounts("", eventState, ruleParam);
+            boolean countMatch = userActionCountQueryStateService.queryActionCounts("",  ruleParam);
             if (!countMatch) return false;
         }
 
@@ -113,7 +113,7 @@ public class QueryRouterV3 {
         if (farRangeParams.size() > 0) {
             // 将规则总参数对象中的“次数类条件”覆盖成： 远期条件组
             ruleParam.setUserActionCountParams(farRangeParams);
-            boolean b = userActionCountQueryClickhouseService.queryActionCounts(logBean.getDeviceId(), null, ruleParam);
+            boolean b = userActionCountQueryClickhouseService.queryActionCounts(logBean.getDeviceId(),  ruleParam);
             if (!b) return false;
         }
 
@@ -127,13 +127,13 @@ public class QueryRouterV3 {
 
             // 将参数对象的rangeStart换成分界点，去state service中查询一下
             crossRangeParam.setRangeStart(splitPoint);
-            boolean b = userActionCountQueryStateService.queryActionCounts(logBean.getDeviceId(), eventState, crossRangeParam);
+            boolean b = userActionCountQueryStateService.queryActionCounts(logBean.getDeviceId(),  crossRangeParam);
             if (b) continue;
 
             // 如果上面不满足，则将rangeEnd换成分界点，去clickhouse service查询
             crossRangeParam.setRangeStart(originRangeStart);
             crossRangeParam.setRangeEnd(splitPoint);
-            boolean b1 = userActionCountQueryClickhouseService.queryActionCounts(logBean.getDeviceId(), eventState, crossRangeParam);
+            boolean b1 = userActionCountQueryClickhouseService.queryActionCounts(logBean.getDeviceId(), crossRangeParam);
 
             if (!b1) return false;
         }

@@ -19,7 +19,7 @@ public class ActionCountsQueryTest {
     public static void main(String[] args) {
 
 
-        UserActionCountQueryServiceStateImpl service = new UserActionCountQueryServiceStateImpl();
+        UserActionCountQueryServiceStateImpl service = new UserActionCountQueryServiceStateImpl(null);
 
         // 构造几个明细事件
         LogBean logBean1 = new LogBean();

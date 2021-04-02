@@ -33,10 +33,15 @@ public class RuleProcessFunction extends KeyedProcessFunction<String, LogBean, R
     public void open(Configuration parameters) throws Exception {
 
         /**
+         * 准备一个存储明细事件的state
+         */
+        ListStateDescriptor<LogBean> desc = new ListStateDescriptor<>("eventState", LogBean.class);
+        eventState = getRuntimeContext().getListState(desc);
+        /**
          * 构造底层的核心查询服务
          */
         userProfileQueryService = new UserProfileQueryServiceHbaseImpl();
-        userActionCountQueryService = new UserActionCountQueryServiceStateImpl();
+        userActionCountQueryService = new UserActionCountQueryServiceStateImpl(eventState);
         userActionSequenceQueryService = new UserActionSequenceQueryServiceStateImpl();
 
         /**
@@ -44,11 +49,6 @@ public class RuleProcessFunction extends KeyedProcessFunction<String, LogBean, R
          */
         ruleParam = RuleSimulator.getRuleParam();
 
-        /**
-         * 准备一个存储明细事件的state
-         */
-        ListStateDescriptor<LogBean> desc = new ListStateDescriptor<>("eventState", LogBean.class);
-        eventState = getRuntimeContext().getListState(desc);
 
 
     }
@@ -68,7 +68,7 @@ public class RuleProcessFunction extends KeyedProcessFunction<String, LogBean, R
             if(!profileMatch) return;
 
             // 查询行为次数条件
-            boolean countMatch = userActionCountQueryService.queryActionCounts("",eventState, ruleParam);
+            boolean countMatch = userActionCountQueryService.queryActionCounts("", ruleParam);
             if(!countMatch) return;
 
             // 查询行为序列条件

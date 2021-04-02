@@ -42,7 +42,7 @@ public class ActionCountsQueryClickhouseTest {
         ruleParam.setUserActionCountParams(ruleParams);
 
 
-        boolean b = impl.queryActionCounts("000001", null, ruleParam);
+        boolean b = impl.queryActionCounts("000001",  ruleParam);
         List<RuleAtomicParam> params = ruleParam.getUserActionCountParams();
         for (RuleAtomicParam param : params) {
             System.out.println(param.getCnts() + ", " + param.getRealCnts());

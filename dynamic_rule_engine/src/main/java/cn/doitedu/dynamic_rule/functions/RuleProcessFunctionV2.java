@@ -42,13 +42,22 @@ public class RuleProcessFunctionV2 extends KeyedProcessFunction<String, LogBean,
 
     @Override
     public void open(Configuration parameters) throws Exception {
+        /**
+         * 准备一个存储明细事件的state
+         * 控制state的ttl周期为最近2小时
+         */
+        ListStateDescriptor<LogBean> desc = new ListStateDescriptor<>("eventState", LogBean.class);
+        StateTtlConfig ttlConfig = StateTtlConfig.newBuilder(Time.hours(2)).updateTtlOnCreateAndWrite().build();
+        desc.enableTimeToLive(ttlConfig);
+        eventState = getRuntimeContext().getListState(desc);
+
 
         userProfileQueryService = new UserProfileQueryServiceHbaseImpl();
 
         /**
          * 构造底层的核心STATE查询服务
          */
-        userActionCountQueryStateService = new UserActionCountQueryServiceStateImpl();
+        userActionCountQueryStateService = new UserActionCountQueryServiceStateImpl(eventState);
         userActionSequenceQueryStateService = new UserActionSequenceQueryServiceStateImpl();
 
         /**
@@ -65,14 +74,7 @@ public class RuleProcessFunctionV2 extends KeyedProcessFunction<String, LogBean,
          */
         ruleParam = RuleSimulator.getRuleParam();
 
-        /**
-         * 准备一个存储明细事件的state
-         * 控制state的ttl周期为最近2小时
-         */
-        ListStateDescriptor<LogBean> desc = new ListStateDescriptor<>("eventState", LogBean.class);
-        StateTtlConfig ttlConfig = StateTtlConfig.newBuilder(Time.hours(2)).updateTtlOnCreateAndWrite().build();
-        desc.enableTimeToLive(ttlConfig);
-        eventState = getRuntimeContext().getListState(desc);
+
 
     }
 
@@ -131,7 +133,7 @@ public class RuleProcessFunctionV2 extends KeyedProcessFunction<String, LogBean,
                 // 将规则总参数对象中的“次数类条件”覆盖成： 近期条件组
                 ruleParam.setUserActionCountParams(nearRangeParams);
                 // 交给stateService对这一组条件进行计算
-                boolean countMatch = userActionCountQueryStateService.queryActionCounts("", eventState, ruleParam);
+                boolean countMatch = userActionCountQueryStateService.queryActionCounts("",  ruleParam);
                 if (!countMatch) return;
             }
 
@@ -139,7 +141,7 @@ public class RuleProcessFunctionV2 extends KeyedProcessFunction<String, LogBean,
             if(farRangeParams.size()>0) {
                 // 将规则总参数对象中的“次数类条件”覆盖成： 远期条件组
                 ruleParam.setUserActionCountParams(farRangeParams);
-                boolean b = userActionCountQueryClickhouseService.queryActionCounts(logBean.getDeviceId(), null, ruleParam);
+                boolean b = userActionCountQueryClickhouseService.queryActionCounts(logBean.getDeviceId(),  ruleParam);
                 if (!b) return;
             }
 

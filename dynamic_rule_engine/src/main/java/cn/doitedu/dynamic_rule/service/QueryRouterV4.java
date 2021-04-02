@@ -21,27 +21,26 @@ import java.util.List;
  * @date 2021-03-31
  * @desc 查询路由模块（加入缓存后的版本）
  * 核心计算入口类
- *   1. 先用缓存管理器去查询缓存数据
- *   2. 然后再根据情况调用各类service去计算
- *   3. 还要将计算结果更新到缓存中
- *
+ * 1. 先用缓存管理器去查询缓存数据
+ * 2. 然后再根据情况调用各类service去计算
+ * 3. 还要将计算结果更新到缓存中
  */
 public class QueryRouterV4 {
 
     // 画像查询服务
-    private UserProfileQueryService userProfileQueryService;
+    private final UserProfileQueryService userProfileQueryService;
 
     // count类条件state查询服务
-    private UserActionCountQueryService userActionCountQueryStateService;
+    private final UserActionCountQueryService userActionCountQueryStateService;
 
     // sequence类条件state查询服务
-    private UserActionSequenceQueryService userActionSequenceQueryStateService;
+    private final UserActionSequenceQueryService userActionSequenceQueryStateService;
 
     // count类条件clickhouse查询服务
-    private UserActionCountQueryService userActionCountQueryClickhouseService;
+    private final UserActionCountQueryService userActionCountQueryClickhouseService;
 
     // sequence类条件clickhouse查询服务
-    private UserActionSequenceQueryService userActionSequenceQueryClickhouseService;
+    private final UserActionSequenceQueryService userActionSequenceQueryClickhouseService;
 
     // 缓存管理器
     BufferManager bufferManager;
@@ -51,26 +50,27 @@ public class QueryRouterV4 {
     /**
      * 构造方法
      * 创建buffermanager实例，及各类其他service实例
-     * @param eventState
-     * @throws Exception
+     *
+     * @param eventState 事件state
+     * @throws Exception 异常
      */
     public QueryRouterV4(ListState<LogBean> eventState) throws Exception {
 
         userProfileQueryService = new UserProfileQueryServiceHbaseImpl();
 
-        /**
+        /*
          * 构造STATE查询服务
          */
         userActionCountQueryStateService = new UserActionCountQueryServiceStateImpl(eventState);
         userActionSequenceQueryStateService = new UserActionSequenceQueryServiceStateImpl();
 
-        /**
+        /*
          * 构造CLICKHOUSE查询服务
          */
         userActionCountQueryClickhouseService = new UserActionCountQueryServiceClickhouseImpl();
         userActionSequenceQueryClickhouseService = new UserActionSequenceQueryServiceClickhouseImpl();
 
-        /**
+        /*
          * 构造一个缓存管理器
          */
         bufferManager = new BufferManager();
@@ -81,31 +81,31 @@ public class QueryRouterV4 {
 
     /**
      * 控制画像条件查询路由
-     * @param logBean
-     * @param ruleParam
-     * @return
+     *
+     * @param logBean   事件bean
+     * @param ruleParam 规则参数对象
+     * @return 匹配与否
      */
     public boolean profileQuery(LogBean logBean, RuleParam ruleParam) {
 
         /* **
-         * TODO 从缓存中获取结果（如果hbase集群能力强，可不将画像查询结果放入缓存）
+         *  从缓存中获取结果（如果hbase集群能力强，可不将画像查询结果放入缓存）
          *******/
 
 
         // 从hbase中查询
-        boolean profileIfMatch = userProfileQueryService.judgeProfileCondition(logBean.getDeviceId(), ruleParam);
+        return userProfileQueryService.judgeProfileCondition(logBean.getDeviceId(), ruleParam);
 
         /* **
-         * TODO 将查询结果插入缓存（如果hbase集群能力强，可不将画像查询结果放入缓存）
+         *  将查询结果插入缓存（如果hbase集群能力强，可不将画像查询结果放入缓存）
          *******/
 
-        if (!profileIfMatch) return false;
-        return true;
     }
 
 
     /**
      * 控制count类条件查询路由
+     *
      * @param logBean   待计算事件
      * @param ruleParam 规则参数对象
      * @return 是否匹配
@@ -142,21 +142,21 @@ public class QueryRouterV4 {
             // 将规则总参数对象中的“次数类条件”覆盖成： 近期条件组
             ruleParam.setUserActionCountParams(nearRangeParamList);
             // 交给stateService对这一组条件进行计算
-            boolean countMatch = userActionCountQueryStateService.queryActionCounts("",  ruleParam);
+            boolean countMatch = userActionCountQueryStateService.queryActionCounts("", ruleParam);
 
             /* **
              *  将查询结果插入缓存
              *******/
             for (RuleAtomicParam ruleAtomicParam : nearRangeParamList) {
                 String bufferKey = RuleCalcUtil.getBufferKey(logBean.getDeviceId(), ruleAtomicParam);
-                bufferManager.putBufferData(bufferKey,ruleAtomicParam.getRealCnts(),ruleAtomicParam.getRangeStart(),ruleAtomicParam.getRangeEnd());
+                bufferManager.putBufferData(bufferKey, ruleAtomicParam.getRealCnts(), ruleAtomicParam.getRangeStart(), ruleAtomicParam.getRangeEnd());
             }
 
             if (!countMatch) return false;
         }
 
 
-        /**
+        /*
          * 跨界count条件组查询
          * 叶子条件逐一控制查询
          */
@@ -173,7 +173,7 @@ public class QueryRouterV4 {
                  *  将查询结果插入缓存  [param.realCnt,条件start,条件end]
                  *******/
 
-                bufferManager.putBufferData(bufferKey,crossRangeParam.getRealCnts(),crossRangeParam.getRangeStart(),crossRangeParam.getRangeEnd());
+                bufferManager.putBufferData(bufferKey, crossRangeParam.getRealCnts(), crossRangeParam.getRangeStart(), crossRangeParam.getRangeEnd());
                 continue;
             }
 
@@ -184,7 +184,7 @@ public class QueryRouterV4 {
             /* **
              *  将查询结果插入缓存  [param.realCnt,原start,原end]
              *******/
-            bufferManager.putBufferData(bufferKey,crossRangeParam.getRealCnts(),originRangeStart,originRangeEnd);
+            bufferManager.putBufferData(bufferKey, crossRangeParam.getRealCnts(), originRangeStart, originRangeEnd);
 
             if (!b1) return false;
         }
@@ -196,17 +196,17 @@ public class QueryRouterV4 {
         if (farRangeParamList.size() > 0) {
             // 将规则总参数对象中的“次数类条件”覆盖成： 远期条件组
             ruleParam.setUserActionCountParams(farRangeParamList);
-            boolean b = userActionCountQueryClickhouseService.queryActionCounts(logBean.getDeviceId(),  ruleParam);
+            boolean b = userActionCountQueryClickhouseService.queryActionCounts(logBean.getDeviceId(), ruleParam);
 
             /* **
              *  将查询结果插入缓存
              *******/
             for (RuleAtomicParam ruleAtomicParam : farRangeParamList) {
                 String bufferKey = RuleCalcUtil.getBufferKey(logBean.getDeviceId(), ruleAtomicParam);
-                bufferManager.putBufferData(bufferKey,ruleAtomicParam.getRealCnts(),ruleAtomicParam.getRangeStart(),ruleAtomicParam.getRangeEnd());
+                bufferManager.putBufferData(bufferKey, ruleAtomicParam.getRealCnts(), ruleAtomicParam.getRangeStart(), ruleAtomicParam.getRangeEnd());
             }
 
-            if (!b) return false;
+            return b;
         }
 
 
@@ -214,10 +214,10 @@ public class QueryRouterV4 {
     }
 
 
-
     /**
      * 控制sequence类条件查询路由
-     * @param logBean 事件bean
+     *
+     * @param logBean   事件bean
      * @param ruleParam 规则参数
      * @return 是否匹配
      * @throws Exception 异常
@@ -247,7 +247,7 @@ public class QueryRouterV4 {
                 // 截短条件序列，如：[A B C D] -> [C D]
                 List<RuleAtomicParam> newSequenceList = originSequenceParamList.subList(bufferResult.getBufferValue(), totalSteps);
                 // 截短条件时间窗口：[缓存end,原end]
-                modifyTimeRange(newSequenceList,bufferResult.getBufferRangeEnd(),originEnd);
+                modifyTimeRange(newSequenceList, bufferResult.getBufferRangeEnd(), originEnd);
                 // 将缓存value值，放入参数对象的maxStep中
                 ruleParam.setUserActionSequenceQueriedMaxStep(bufferResult.getBufferValue());
                 // 更新规则参数对象
@@ -284,14 +284,14 @@ public class QueryRouterV4 {
 
                 // 将查询结果插入缓存 ==>   key:初始条件，value： [param.maxStep|原始start,原始end]
                 String bufferKey1 = RuleCalcUtil.getBufferKey(logBean.getDeviceId(), originSequenceParamList);
-                bufferManager.putBufferData(bufferKey1,ruleParam.getUserActionSequenceQueriedMaxStep(),originStart,originEnd);
+                bufferManager.putBufferData(bufferKey1, ruleParam.getUserActionSequenceQueriedMaxStep(), originStart, originEnd);
 
                 return b;
             }
 
             // b.跨界查询 ： 条件start跨越分界点，则进行双路查询
-            else if(rangeStart<splitPoint && rangeEnd> splitPoint){
-                /**
+            else if (rangeStart < splitPoint && rangeEnd > splitPoint) {
+                /*
                  * 1. 先查state碰运气
                  */
                 // 修改时间窗口 [分界点,截短后条件的end]
@@ -302,40 +302,40 @@ public class QueryRouterV4 {
 
                 // 执行查询，maxStep会在缓存value基础上累加
                 userActionSequenceQueryStateService.queryActionSequence(logBean.getDeviceId(), eventState, ruleParam);
-                if (ruleParam.getUserActionSequenceQueriedMaxStep()>=totalSteps) {
+                if (ruleParam.getUserActionSequenceQueriedMaxStep() >= totalSteps) {
                     /*
                      * 将查询结果插入缓存 [ param.maxStep, 初始start, 初始end ]
                      ******/
                     String bufferKey1 = RuleCalcUtil.getBufferKey(logBean.getDeviceId(), originSequenceParamList);
-                    bufferManager.putBufferData(bufferKey1,ruleParam.getUserActionSequenceQueriedMaxStep(),originStart,originEnd);
+                    bufferManager.putBufferData(bufferKey1, ruleParam.getUserActionSequenceQueriedMaxStep(), originStart, originEnd);
 
                     return true;
-                }else{
+                } else {
                     // 将参数中的maxStep恢复到缓存查完后的值
                     ruleParam.setUserActionSequenceQueriedMaxStep(bufferValue);
                 }
 
-                /**
+                /*
                  * 2. 如果运气没碰上，则按常规流程查（先clickhouse，再state，再整合结果）
                  */
                 // 修改条件时间窗口 [缓存截短后的rangeStart,分界点] 去clickhouse中查
                 modifyTimeRange(newParamList, rangeStart, splitPoint);
 
                 // 执行clickhouse查询，maxStep会在缓存value基础上累加
-                boolean b1 = userActionSequenceQueryClickhouseService.queryActionSequence(logBean.getDeviceId(), eventState, ruleParam);
+                userActionSequenceQueryClickhouseService.queryActionSequence(logBean.getDeviceId(), eventState, ruleParam);
                 int farMaxStep = ruleParam.getUserActionSequenceQueriedMaxStep();
                 if (ruleParam.getUserActionSequenceQueriedMaxStep() >= totalSteps) {
                     /*
                      *  将查询结果插入缓存 [ farMaxStep, 缓存截短后的rangeStart, 分界点 ]
                      ******/
                     String bufferKey1 = RuleCalcUtil.getBufferKey(logBean.getDeviceId(), originSequenceParamList);
-                    bufferManager.putBufferData(bufferKey1,ruleParam.getUserActionSequenceQueriedMaxStep(),originStart,splitPoint);
+                    bufferManager.putBufferData(bufferKey1, ruleParam.getUserActionSequenceQueriedMaxStep(), originStart, splitPoint);
 
                     return true;
                 }
 
 
-                /**
+                /*
                  * 3. 如果远期部分不足以满足整个条件，则将条件再次截短（相对于缓存截短后的条件进行再次截短）
                  */
                 // 修改时间窗口 [分界点,截短后的rangeEnd]
@@ -347,7 +347,7 @@ public class QueryRouterV4 {
 
                 // 将查询结果插入缓存 [rule.maxStep, 原originStart, 原originEnd ]
                 String bufferKey1 = RuleCalcUtil.getBufferKey(logBean.getDeviceId(), originSequenceParamList);
-                bufferManager.putBufferData(bufferKey1,ruleParam.getUserActionSequenceQueriedMaxStep(),originStart,originEnd);
+                bufferManager.putBufferData(bufferKey1, ruleParam.getUserActionSequenceQueriedMaxStep(), originStart, originEnd);
                 return ruleParam.getUserActionSequenceQueriedMaxStep() >= totalSteps;
             }
 
@@ -360,7 +360,7 @@ public class QueryRouterV4 {
                 // 将查询结果插入缓存 [param.maxStep,原start,原end]
                 String bufferKey1 = RuleCalcUtil.getBufferKey(logBean.getDeviceId(), originSequenceParamList);
                 List<RuleAtomicParam> lst = ruleParam.getUserActionSequenceParams();
-                bufferManager.putBufferData(bufferKey1,ruleParam.getUserActionSequenceQueriedMaxStep(),lst.get(0).getRangeStart(),lst.get(0).getRangeEnd());
+                bufferManager.putBufferData(bufferKey1, ruleParam.getUserActionSequenceQueriedMaxStep(), lst.get(0).getRangeStart(), lst.get(0).getRangeEnd());
                 return b;
             }
         }
@@ -372,9 +372,9 @@ public class QueryRouterV4 {
     /**
      * 更新条件时间窗口起始点的工具方法
      *
-     * @param userActionSequenceParams
-     * @param newStart
-     * @param newEnd
+     * @param userActionSequenceParams  用户行为序列参数列表
+     * @param newStart  新的起始点
+     * @param newEnd 新的结束点
      */
     private void modifyTimeRange(List<RuleAtomicParam> userActionSequenceParams, long newStart, long newEnd) {
         for (RuleAtomicParam userActionSequenceParam : userActionSequenceParams) {
@@ -389,7 +389,8 @@ public class QueryRouterV4 {
      * 1. 缩短条件的窗口
      * 2. 剔除条件
      * 3. 啥也不做
-     * @param logBean 待处理事件
+     *
+     * @param logBean               待处理事件
      * @param userActionCountParams count类条件list
      */
     private void updateRuleParamByBufferResult(LogBean logBean, List<RuleAtomicParam> userActionCountParams) {
@@ -424,12 +425,11 @@ public class QueryRouterV4 {
 
 
     /**
-     *
-     * @param userActionCountParams  初始条件List
-     * @param splitPoint  时间分界点
-     * @param farRangeParams  远期条件组
-     * @param nearRangeParams 近期条件组
-     * @param crossRangeParams 跨界条件组
+     * @param userActionCountParams 初始条件List
+     * @param splitPoint            时间分界点
+     * @param farRangeParams        远期条件组
+     * @param nearRangeParams       近期条件组
+     * @param crossRangeParams      跨界条件组
      */
     private void splitParamList(List<RuleAtomicParam> userActionCountParams, long splitPoint, ArrayList<RuleAtomicParam> farRangeParams, ArrayList<RuleAtomicParam> nearRangeParams, ArrayList<RuleAtomicParam> crossRangeParams) {
         for (RuleAtomicParam userActionCountParam : userActionCountParams) {

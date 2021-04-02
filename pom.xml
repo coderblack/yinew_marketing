@@ -12,6 +12,7 @@
         <module>dynamic_rule_engine</module>
         <module>user_profile</module>
         <module>data_analysis</module>
+        <module>log4jdemo</module>
     </modules>
 
     <!-- 依赖下载国内镜像库 -->
