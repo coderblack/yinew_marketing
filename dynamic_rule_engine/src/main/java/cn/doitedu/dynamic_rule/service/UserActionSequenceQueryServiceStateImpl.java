@@ -5,6 +5,7 @@ import cn.doitedu.dynamic_rule.pojo.LogBean;
 import cn.doitedu.dynamic_rule.pojo.RuleAtomicParam;
 import cn.doitedu.dynamic_rule.pojo.RuleParam;
 import cn.doitedu.dynamic_rule.utils.RuleCalcUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.api.common.state.ListState;
 import org.apache.flink.util.IterableUtils;
@@ -20,6 +21,7 @@ import java.util.List;
  * @date 2021-03-28
  * @desc 用户行为次序类条件查询服务实现（在state中查询）
  */
+@Slf4j
 public class UserActionSequenceQueryServiceStateImpl implements UserActionSequenceQueryService {
 
 
@@ -87,7 +89,7 @@ public class UserActionSequenceQueryServiceStateImpl implements UserActionSequen
 
         }
 
-        System.out.println("步骤匹配计算完成： 查询到的最大步骤号为： " + maxStep + ",条件中的步骤数为：" + userActionSequenceParams.size());
+        log.debug("在state中步骤匹配计算完成： 查询到的最大步骤号为： " + maxStep + ",条件中的步骤数为：" + userActionSequenceParams.size());
         return maxStep;
     }
 
@@ -107,7 +109,7 @@ public class UserActionSequenceQueryServiceStateImpl implements UserActionSequen
             }
             if (maxStep == userActionSequenceParams.size()) break;
         }
-        System.out.println("步骤匹配计算完成： 查询到的最大步骤号为： " + maxStep + ",条件中的步骤数为：" + userActionSequenceParams.size());
+        log.debug("在state中步骤匹配计算完成： 查询到的最大步骤号为： " + maxStep + ",条件中的步骤数为：" + userActionSequenceParams.size());
         return maxStep;
     }
 

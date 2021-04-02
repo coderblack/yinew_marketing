@@ -31,6 +31,7 @@ public class RuleEngineV4 {
         SingleOutputStreamOperator<LogBean> beanStream = logStream.map(new Json2BeanMapFunction());
 
         // 对数据按用户deviceid分key
+        // TODO 后续可以升级改造成 动态keyby
         KeyedStream<LogBean, String> keyed = beanStream.keyBy(new DeviceKeySelector());
 
         // 开始核心计算处理

@@ -6,6 +6,7 @@ import cn.doitedu.dynamic_rule.pojo.RuleParam;
 import cn.doitedu.dynamic_rule.service.QueryRouterV3;
 import cn.doitedu.dynamic_rule.service.QueryRouterV4;
 import cn.doitedu.dynamic_rule.utils.RuleSimulator;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.state.ListState;
 import org.apache.flink.api.common.state.ListStateDescriptor;
 import org.apache.flink.api.common.state.StateTtlConfig;
@@ -22,6 +23,7 @@ import org.apache.flink.util.Collector;
  * @date 2021-03-28
  * @desc 规则核心处理函数版本4.0
  */
+@Slf4j
 public class RuleProcessFunctionV4 extends KeyedProcessFunction<String, LogBean, ResultBean> {
 
     QueryRouterV4 queryRouterV4;
@@ -73,7 +75,7 @@ public class RuleProcessFunctionV4 extends KeyedProcessFunction<String, LogBean,
          * 主逻辑，进行规则触发和计算
          */
         if (ruleParam.getTriggerParam().getEventId().equals(logBean.getEventId())) {
-            System.out.println("规则计算被触发：" + logBean.getDeviceId() + ","+logBean.getEventId());
+            log.debug("{}规则,触发人:{},触发事件:{},触发时间:{}",ruleParam.getRuleId(),logBean.getDeviceId(),logBean.getEventId(),logBean.getTimeStamp());
 
             boolean b1 = queryRouterV4.profileQuery(logBean, ruleParam);
             if(!b1) return;
@@ -90,6 +92,7 @@ public class RuleProcessFunctionV4 extends KeyedProcessFunction<String, LogBean,
             resultBean.setTimeStamp(logBean.getTimeStamp());
             resultBean.setRuleId(ruleParam.getRuleId());
             resultBean.setDeviceId(logBean.getDeviceId());
+            log.info("{}规则,触发人:{},计算匹配成功",ruleParam.getRuleId(),logBean.getDeviceId());
 
             out.collect(resultBean);
         }

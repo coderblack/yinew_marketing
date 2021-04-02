@@ -98,11 +98,14 @@ public class ActionLogGen {
                         logBean.setResolution("2048*1024");
 
 
+                        /**
+                         * 生成事件ID
+                         */
                         logBean.setEventId(RandomStringUtils.randomAlphabetic(1).toUpperCase());
 
                         HashMap<String, String> properties = new HashMap<String, String>();
                         for (int i = 0; i < RandomUtils.nextInt(1, 5); i++) {
-                            // 生成的属性形如：  p1=v3, p2=v5, p3=v3,......
+                            // 生成的属性形如：  p1=v1, p2=v1, p3=v2,p4=v1,..... p10=
                             properties.put("p" + RandomUtils.nextInt(1, 11), "v" + RandomUtils.nextInt(1, 3));
                         }
 
@@ -121,7 +124,7 @@ public class ActionLogGen {
                         kafkaProducer.send(record);
 
                         try {
-                            Thread.sleep(RandomUtils.nextInt(200, 301));
+                            Thread.sleep(RandomUtils.nextInt(1000, 2001));
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }

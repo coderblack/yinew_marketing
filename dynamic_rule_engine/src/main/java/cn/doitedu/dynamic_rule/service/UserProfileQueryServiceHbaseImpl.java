@@ -1,6 +1,7 @@
 package cn.doitedu.dynamic_rule.service;
 
 import cn.doitedu.dynamic_rule.pojo.RuleParam;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
@@ -17,6 +18,7 @@ import java.util.Set;
  * @date 2021-03-28
  * @desc 用户画像查询服务，hbase查询实现类
  */
+@Slf4j
 public class UserProfileQueryServiceHbaseImpl implements UserProfileQueryService {
 
     Connection conn;
@@ -29,10 +31,10 @@ public class UserProfileQueryServiceHbaseImpl implements UserProfileQueryService
         Configuration conf = new Configuration();
         conf.set("hbase.zookeeper.quorum", "hdp01:2181,hdp02:2181,hdp03:2181");
 
-        System.out.println("准备创建hbase连接........");
+        log.debug("hbase连接准备创建");
         conn = ConnectionFactory.createConnection(conf);
         table = conn.getTable(TableName.valueOf("yinew_profile"));
-        System.out.println("创建hbase连接完毕.........");
+        log.debug("hbase连接创建完毕");
     }
 
     /**
@@ -63,6 +65,7 @@ public class UserProfileQueryServiceHbaseImpl implements UserProfileQueryService
 
         // 调用hbase的api执行查询
         try {
+            long s = System.currentTimeMillis();
             Result result = table.get(get);
             // 判断结果和条件中的要求是否一致
             for (String tagName : tagNames) {
@@ -70,10 +73,15 @@ public class UserProfileQueryServiceHbaseImpl implements UserProfileQueryService
                 byte[] valueBytes = result.getValue("f".getBytes(), tagName.getBytes());
                 // 判断查询到的value和条件中要求的value是否一致，如果不一致，方法直接返回：false
                 if(!(valueBytes!=null && new String(valueBytes).equals(userProfileParams.get(tagName)))){
-                    System.out.println("查询了hbase，只是不匹配，真实值：" + new String(valueBytes) + "条件值：" + userProfileParams.get(tagName));
+                    long e = System.currentTimeMillis();
+                    log.debug("规则:{},用户:{},查询了Hbase,要求的条件是:{},{},查询结果为:{},匹配失败,耗费时长:{}",ruleParam.getRuleId(),
+                            deviceId,tagName,userProfileParams.get(tagName),new String(valueBytes),e-s);
                     return false;
                 }
             }
+
+            log.debug("规则:{},用户:{},查询了Hbase,匹配成功",ruleParam.getRuleId(),deviceId);
+
             // 如果上面的for循环走完了，那说明每个标签的查询值都等于条件中要求的值，则可以返回true
             return true;
         } catch (IOException e) {

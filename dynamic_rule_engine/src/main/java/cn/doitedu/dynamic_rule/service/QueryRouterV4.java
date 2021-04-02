@@ -5,6 +5,7 @@ import cn.doitedu.dynamic_rule.pojo.LogBean;
 import cn.doitedu.dynamic_rule.pojo.RuleAtomicParam;
 import cn.doitedu.dynamic_rule.pojo.RuleParam;
 import cn.doitedu.dynamic_rule.utils.RuleCalcUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.flink.api.common.state.ListState;
 
@@ -12,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+
+import static cn.doitedu.dynamic_rule.pojo.BufferAvailableLevel.*;
 
 /**
  * @author 涛哥
@@ -25,6 +28,7 @@ import java.util.List;
  * 2. 然后再根据情况调用各类service去计算
  * 3. 还要将计算结果更新到缓存中
  */
+@Slf4j
 public class QueryRouterV4 {
 
     // 画像查询服务
@@ -150,6 +154,7 @@ public class QueryRouterV4 {
             for (RuleAtomicParam ruleAtomicParam : nearRangeParamList) {
                 String bufferKey = RuleCalcUtil.getBufferKey(logBean.getDeviceId(), ruleAtomicParam);
                 bufferManager.putBufferData(bufferKey, ruleAtomicParam.getRealCnts(), ruleAtomicParam.getRangeStart(), ruleAtomicParam.getRangeEnd());
+                log.info("近期查询结果插入缓存,key:{},value:{},buffer_start:{},buffer_end:{}",bufferKey,ruleAtomicParam.getRealCnts(),ruleAtomicParam.getRangeStart(), ruleAtomicParam.getRangeEnd());
             }
 
             if (!countMatch) return false;
@@ -168,12 +173,15 @@ public class QueryRouterV4 {
             // 将参数时段替换[分界点,原end]，去state service中查询
             crossRangeParam.setRangeStart(splitPoint);
             boolean b = userActionCountQueryStateService.queryActionCounts(logBean.getDeviceId(), crossRangeParam);
+            log.info("跨界count查询-近期结果,start:{},end:{},value:{},条件阈值:{}",crossRangeParam.getRangeStart(),crossRangeParam.getRangeEnd(),crossRangeParam.getRealCnts(),crossRangeParam.getCnts());
+
             if (b) {
                 /* **
                  *  将查询结果插入缓存  [param.realCnt,条件start,条件end]
                  *******/
-
                 bufferManager.putBufferData(bufferKey, crossRangeParam.getRealCnts(), crossRangeParam.getRangeStart(), crossRangeParam.getRangeEnd());
+                log.info("跨界count查询-近期结果已经匹配,插入缓存,key:{},value:{},start:{},end:{},条件阈值:{}",bufferKey,crossRangeParam.getRealCnts(),
+                        crossRangeParam.getRangeStart(),crossRangeParam.getRangeEnd(),crossRangeParam.getCnts());
                 continue;
             }
 
@@ -181,11 +189,14 @@ public class QueryRouterV4 {
             crossRangeParam.setRangeStart(originRangeStart);
             crossRangeParam.setRangeEnd(splitPoint);
             boolean b1 = userActionCountQueryClickhouseService.queryActionCounts(logBean.getDeviceId(), crossRangeParam);
+            log.info("跨界count查询-远期结果,start:{},end:{},value:{},条件阈值:{}",crossRangeParam.getRangeStart(),crossRangeParam.getRangeEnd(),crossRangeParam.getRealCnts(),crossRangeParam.getCnts());
+
             /* **
              *  将查询结果插入缓存  [param.realCnt,原start,原end]
              *******/
             bufferManager.putBufferData(bufferKey, crossRangeParam.getRealCnts(), originRangeStart, originRangeEnd);
-
+            log.info("跨界count查询-近期结果已经匹配,插入缓存,key:{},value:{},start:{},end:{},条件阈值:{}",bufferKey,crossRangeParam.getRealCnts(),
+                    originRangeStart,originRangeEnd,crossRangeParam.getCnts());
             if (!b1) return false;
         }
 
@@ -408,21 +419,34 @@ public class QueryRouterV4 {
                 // 如果是部分有效
                 case PARTIAL_AVL:
                     // 则更新规则条件的窗口起始点
+                    log.info("缓存有效:{},key:{},value:{},条件阈值:{},缓存start:{},缓存end{},条件start:{},条件end:{}",
+                            PARTIAL_AVL,bufferKey,bufferResult.getBufferValue(),countParam.getCnts(),
+                            bufferResult.getBufferRangeStart(),bufferResult.getBufferRangeEnd(),
+                            countParam.getRangeStart(),countParam.getRangeEnd());
+
                     countParam.setRangeStart(bufferResult.getBufferRangeEnd());
                     // 将value值，放入参数对象的realCnt中
                     countParam.setRealCnts(bufferResult.getBufferValue());
                     break;
                 // 如果是完全有效，则剔除该条件
                 case WHOLE_AVL:
+                    log.info("缓存有效:{},key:{},value:{},条件阈值:{},缓存start:{},缓存end{},条件start:{},条件end:{}",
+                            WHOLE_AVL,bufferKey,bufferResult.getBufferValue(),countParam.getCnts(),
+                            bufferResult.getBufferRangeStart(),bufferResult.getBufferRangeEnd(),
+                            countParam.getRangeStart(),countParam.getRangeEnd());
+                    // 剔除条件
                     userActionCountParams.remove(i);
                     i--;
                     break;
                 case UN_AVL:
+                    log.info("缓存无效:{},key:{},value:{},条件阈值:{},缓存start:{},缓存end{},条件start:{},条件end:{}",
+                            UN_AVL,bufferKey,bufferResult.getBufferValue(),countParam.getCnts(),
+                            bufferResult.getBufferRangeStart(),bufferResult.getBufferRangeEnd(),
+                            countParam.getRangeStart(),countParam.getRangeEnd());
             }
 
         }
     }
-
 
     /**
      * @param userActionCountParams 初始条件List

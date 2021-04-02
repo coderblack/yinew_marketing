@@ -1,5 +1,7 @@
 package cn.doitedu.dynamic_rule.utils;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 
@@ -11,6 +13,7 @@ import java.sql.DriverManager;
  * @date 2021-03-30
  * @desc 各类外部链接创建工具类
  */
+@Slf4j
 public class ConnectionUtils {
 
 
@@ -21,7 +24,9 @@ public class ConnectionUtils {
         String table = "yinew_detail";
 
         Class.forName(ckDriver);
-        return DriverManager.getConnection(ckUrl);
+        Connection conn = DriverManager.getConnection(ckUrl);
+        log.debug("clickhouse jdbc 连接创建完成");
+        return conn;
     }
 
 

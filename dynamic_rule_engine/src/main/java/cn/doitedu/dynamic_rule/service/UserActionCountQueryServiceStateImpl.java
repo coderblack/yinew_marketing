@@ -4,6 +4,7 @@ import cn.doitedu.dynamic_rule.pojo.LogBean;
 import cn.doitedu.dynamic_rule.pojo.RuleAtomicParam;
 import cn.doitedu.dynamic_rule.pojo.RuleParam;
 import cn.doitedu.dynamic_rule.utils.RuleCalcUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.state.ListState;
 
 import java.util.HashMap;
@@ -19,6 +20,7 @@ import java.util.Set;
  * @date 2021-03-28
  * @desc 用户行为次数类条件查询服务实现：在flink的state中统计行为次数
  */
+@Slf4j
 public class UserActionCountQueryServiceStateImpl implements UserActionCountQueryService {
 
     ListState<LogBean> eventState;
@@ -72,6 +74,7 @@ public class UserActionCountQueryServiceStateImpl implements UserActionCountQuer
 
                 // 判断当前logbean 和当前 规则原子条件userActionCountParam 是否一致
                 boolean isMatch = RuleCalcUtil.eventBeanMatchEventParam(logBean, userActionCountParam,true);
+                log.debug("用户:{},查询了近期count条件,{},查询到的结果:{}",logBean.getDeviceId(),userActionCountParam.getEventId(),userActionCountParam.getRealCnts());
 
                 // 如果一致，则查询次数结果+1
                 if (isMatch) {
