@@ -41,18 +41,21 @@ public class BufferManager {
      * @return 缓存数据结果
      */
     public BufferResult getBufferData(String bufferKey,long paramRangeStart,long paramRangeEnd,int threshold){
+        // 准备缓存返回结果实体对象
+        BufferResult bufferResult = new BufferResult();
+        bufferResult.setBufferAvailableLevel(BufferAvailableLevel.UN_AVL);
+
         /*
          *  解析缓存数据
          *  格式:   2|t1,t8
          *****/
         String data = jedis.get(bufferKey);
-        // TODO data可能为null，这里直接切，会产生空指针异常
+        // data可能为null，这里直接切，会产生空指针异常
+        if(data ==null || data.split("\\|").length<2) return bufferResult;
+
         String[] split = data.split("\\|");
         String[] timeRange = split[1].split(",");
 
-        // 准备缓存返回结果实体对象
-        BufferResult bufferResult = new BufferResult();
-        bufferResult.setBufferAvailableLevel(BufferAvailableLevel.UN_AVL);
         bufferResult.setBufferKey(bufferKey);
         bufferResult.setBufferValue(Integer.parseInt(split[0]));
         bufferResult.setBufferRangeStart(Long.parseLong(timeRange[0]));

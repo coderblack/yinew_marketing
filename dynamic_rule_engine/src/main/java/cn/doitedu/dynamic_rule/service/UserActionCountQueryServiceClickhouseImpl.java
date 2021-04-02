@@ -25,23 +25,22 @@ public class UserActionCountQueryServiceClickhouseImpl implements UserActionCoun
 
 
     /**
-     * TODO 本方法不需要state，硬生生遗留一个state参数，很别扭，待改造
+     *
      * 根据给定的deviceId，查询这个人是否满足ruleParam中的所有“次数类"规则条件
      * @param deviceId   要查询的用户
-     * @param eventState flink中存储明细事件的state，本实现类中不需要
      * @param ruleParam  规则参数对象
      * @return 条件查询的结果是否成立
      * @throws Exception
      */
     @Override
-    public boolean queryActionCounts(String deviceId, ListState<LogBean> eventState, RuleParam ruleParam) throws Exception {
+    public boolean queryActionCounts(String deviceId,  RuleParam ruleParam) throws Exception {
 
         List<RuleAtomicParam> userActionCountParams = ruleParam.getUserActionCountParams();
 
         // 遍历每一个原子条件进行查询判断
         for (RuleAtomicParam atomicParam : userActionCountParams) {
 
-            queryActionCounts(deviceId,eventState,atomicParam);
+            queryActionCounts(deviceId,atomicParam);
 
         }
 
@@ -50,20 +49,19 @@ public class UserActionCountQueryServiceClickhouseImpl implements UserActionCoun
     }
 
     /**
-     * TODO 本方法不需要state，硬生生遗留一个state参数，很别扭，待改造
+     *
      * 查询单个行为count条件是否成立
      * @param deviceId 设备id
-     * @param eventState 事件state
      * @param atomicParam 原子条件
      * @return 是否成立
      * @throws Exception 异常
      */
     @Override
-    public boolean queryActionCounts(String deviceId, ListState<LogBean> eventState, RuleAtomicParam atomicParam) throws Exception {
+    public boolean queryActionCounts(String deviceId, RuleAtomicParam atomicParam) throws Exception {
         // 对当前的原子条件拼接查询sql
         String sql = atomicParam.getCountQuerySql();
-        // TODO 需要将sql中的deviceId占位符替换成真实deviceId
-        System.out.println(sql);
+        // 需要将sql中的deviceId占位符替换成真实deviceId
+        sql.replaceAll("\\$\\{deviceid\\}",deviceId);
 
         // 获取一个clickhouse 的jdbc连接
         Statement statement = conn.createStatement();

@@ -29,8 +29,8 @@ public class RuleSimulator {
 
         // 构造画像条件
         HashMap<String, String> userProfileParams = new HashMap<>();
-        userProfileParams.put("tag42","v8");
-        //userProfileParams.put("tag47","v53");
+        userProfileParams.put("tag5","v1");
+        userProfileParams.put("tag6","v2");
         ruleParam.setUserProfileParams(userProfileParams);
 
 
@@ -58,7 +58,7 @@ public class RuleSimulator {
         RuleAtomicParam count2 = new RuleAtomicParam();
         count2.setEventId("D");
         HashMap<String, String> paramProps2 = new HashMap<>();
-        paramProps2.put("p2","v3");
+        paramProps2.put("p2","v2");
         count2.setProperties(paramProps2);
         count2.setRangeStart(1617094800000L);
         count2.setRangeEnd(Long.MAX_VALUE);
@@ -67,7 +67,7 @@ public class RuleSimulator {
                 "    deviceId,\n" +
                 "    count(1) as cnt\n" +
                 "from event_detail\n" +
-                "where deviceId='${deviceid}' and eventId='D' and properties['p2']='v3'\n" +
+                "where deviceId='${deviceid}' and eventId='D' and properties['p2']='v2'\n" +
                 "  and timeStamp between 1617094800000 and 6615900580000\n" +
                 "group by deviceId \n" +
                 ";";

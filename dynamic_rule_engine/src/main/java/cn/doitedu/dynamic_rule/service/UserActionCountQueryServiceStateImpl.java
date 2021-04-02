@@ -21,16 +21,21 @@ import java.util.Set;
  */
 public class UserActionCountQueryServiceStateImpl implements UserActionCountQueryService {
 
+    ListState<LogBean> eventState;
+    public UserActionCountQueryServiceStateImpl(ListState<LogBean> eventState){
+
+        this.eventState = eventState;
+    }
 
     /**
      * 查询规则参数对象中，要求的用户行为次数类条件是否满足
      * 同时，将查询到的真实次数，set回 规则参数对象中
      *
-     * @param eventState 用户事件明细存储state
      * @param ruleParam  规则整体参数对象
      * @return 条件是否满足
      */
-    public boolean queryActionCounts(String deviceId,ListState<LogBean> eventState, RuleParam ruleParam) throws Exception {
+    @Override
+    public boolean queryActionCounts(String deviceId,RuleParam ruleParam) throws Exception {
 
         // 取出各个用户行为次数原子条件
         List<RuleAtomicParam> userActionCountParams = ruleParam.getUserActionCountParams();
@@ -84,12 +89,12 @@ public class UserActionCountQueryServiceStateImpl implements UserActionCountQuer
      * 进行查询，并返回是否匹配
      * 并且，将查询到的realcount塞回参数对象
      * @param deviceId
-     * @param eventState
      * @param atomicParam
      * @return
      * @throws Exception
      */
-    public boolean queryActionCounts(String deviceId,ListState<LogBean> eventState, RuleAtomicParam atomicParam) throws Exception {
+    @Override
+    public boolean queryActionCounts(String deviceId, RuleAtomicParam atomicParam) throws Exception {
 
         Iterable<LogBean> logBeans = eventState.get();
         for (LogBean logBean : logBeans) {

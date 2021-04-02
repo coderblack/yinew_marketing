@@ -80,7 +80,7 @@ public class ActionLogGen {
                     while (true) {
                         LogBean logBean = new LogBean();
                         // 生成的账号形如： 004078
-                        String account = StringUtils.leftPad(RandomUtils.nextInt(1, 10) + "", 6, "0");
+                        String account = StringUtils.leftPad(RandomUtils.nextInt(1, 100) + "", 6, "0");
                         logBean.setAccount(account);
                         logBean.setAppId("cn.doitedu.yinew");
                         logBean.setAppVersion("2.5");
@@ -103,7 +103,7 @@ public class ActionLogGen {
                         HashMap<String, String> properties = new HashMap<String, String>();
                         for (int i = 0; i < RandomUtils.nextInt(1, 5); i++) {
                             // 生成的属性形如：  p1=v3, p2=v5, p3=v3,......
-                            properties.put("p" + RandomUtils.nextInt(1, 10), "v" + RandomUtils.nextInt(1, 10));
+                            properties.put("p" + RandomUtils.nextInt(1, 11), "v" + RandomUtils.nextInt(1, 3));
                         }
 
                         logBean.setProperties(properties);
@@ -121,7 +121,7 @@ public class ActionLogGen {
                         kafkaProducer.send(record);
 
                         try {
-                            Thread.sleep(RandomUtils.nextInt(2000, 3001));
+                            Thread.sleep(RandomUtils.nextInt(200, 301));
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }

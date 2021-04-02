@@ -27,7 +27,7 @@ public class UserActionSequenceQueryServiceClickhouseImpl implements UserActionS
 
     /**
      * 从clickhouse中查询行为序列条件是否满足
-     * TODO 本方法不需要state，硬生生遗留一个state参数，很别扭，待改造
+     *
      * @param deviceId
      * @param eventState
      * @param ruleParam
@@ -41,7 +41,9 @@ public class UserActionSequenceQueryServiceClickhouseImpl implements UserActionS
 
         // 取出查询sql
         String sql = ruleParam.getActionSequenceQuerySql();
-        // TODO 需要将sql中的deviceId占位符替换成真实deviceId
+        // 需要将sql中的deviceId占位符替换成真实deviceId
+        sql.replaceAll("\\$\\{deviceid\\}",deviceId);
+
         Statement stmt = conn.createStatement();
         // 执行查询
         long s = System.currentTimeMillis();
