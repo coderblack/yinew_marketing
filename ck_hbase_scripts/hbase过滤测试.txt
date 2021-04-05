@@ -1,0 +1,1 @@
+scan 'yinew_profile', {LIMIT => 20,FILTER => "(QualifierFilter(=, 'binary:tag5')) AND (ValueFilter(=,'binary:v5'))"}
