@@ -192,17 +192,19 @@ public class QueryRouterV4 {
             crossRangeParam.setRangeEnd(splitPoint);
 
             // 查询clickhouse
+            long ts=System.currentTimeMillis();
             boolean b1 = userActionCountQueryClickhouseService.queryActionCounts(logBean.getDeviceId(), crossRangeParam,ruleParam.getRuleId());
-            log.warn("规则:{},用户:{},count跨界查询-clickhouse后总结果,start:{},end:{},结果:{},条件EID:{},条件props:{},条件阈值:{}",
-                    ruleParam.getRuleId(),logBean.getDeviceId(),
+            long te=System.currentTimeMillis();
+            log.debug("规则:{},用户:{},count跨界查询-clickhouse,耗时:{},总结果,start:{},end:{},结果:{},条件EID:{},条件props:{},条件阈值:{}",
+                    ruleParam.getRuleId(),logBean.getDeviceId(),te-ts,
                     crossRangeParam.getRangeStart(),crossRangeParam.getRangeEnd(),
                     crossRangeParam.getRealCnt(),crossRangeParam.getEventId(),
                     crossRangeParam.getProperties(),crossRangeParam.getCnt());
 
             // 因为cnt有累积效应，所以缓存range应该是条件完整range [param.realCnt,原start,原end]
             bufferManager.putBufferData(bufferKey, crossRangeParam.getRealCnt(), crossRangeParam.getOriginStart(), trimUnboundEnd(crossRangeParam.getOriginEnd(),logBean.getTimeStamp()));
-            log.warn("规则:{},用户:{},count跨界查询-clickhouse后总结果,插入缓存,key:{},value:{},start:{},end:{},条件阈值:{}",
-                    ruleParam.getRuleId(),logBean.getDeviceId(),
+            log.warn("规则:{},用户:{},count跨界查询-clickhouse,耗时:{},结果插入缓存,key:{},value:{},start:{},end:{},条件阈值:{}",
+                    ruleParam.getRuleId(),logBean.getDeviceId(),te-ts,
                     bufferKey,crossRangeParam.getRealCnt(),
                     crossRangeParam.getOriginStart(),trimUnboundEnd(crossRangeParam.getOriginEnd(),logBean.getTimeStamp()),crossRangeParam.getCnt());
             if (!b1) return false;
@@ -215,14 +217,16 @@ public class QueryRouterV4 {
         if (farRangeParamList.size() > 0) {
             // 将规则总参数对象中的“次数类条件”覆盖成： 远期条件组
             ruleParam.setUserActionCountParams(farRangeParamList);
+            long ts = System.currentTimeMillis();
             boolean b = userActionCountQueryClickhouseService.queryActionCounts(logBean.getDeviceId(), ruleParam);
-            log.warn("规则:{},用户:{},count远期条件组size:{},clickhouse总结果:{}",ruleParam.getRuleId(),logBean.getDeviceId(),farRangeParamList.size(),b);
+            long te = System.currentTimeMillis();
+            log.warn("规则:{},用户:{},count远期条件组size:{},clickhouse查询耗时:{},总结果:{}",ruleParam.getRuleId(),logBean.getDeviceId(),farRangeParamList.size(),te-ts,b);
 
             for (RuleAtomicParam ruleAtomicParam : farRangeParamList) {
                 String bufferKey = RuleCalcUtil.getBufferKey(logBean.getDeviceId(), ruleAtomicParam);
                 // 将查询结果插入缓存
                 bufferManager.putBufferData(bufferKey, ruleAtomicParam.getRealCnt(), ruleAtomicParam.getOriginStart(), trimUnboundEnd(ruleAtomicParam.getOriginEnd(),logBean.getTimeStamp()));
-                log.warn("规则:{},用户:{},count远期条件EID:{},props:{},查询-clickhouse后总结果,插入缓存,key:{},value:{},start:{},end:{},条件阈值:{}",ruleParam.getRuleId(),logBean.getDeviceId(),
+                log.warn("规则:{},用户:{},count远期条件EID:{},props:{},clickhouse查询,总结果插入缓存,key:{},value:{},start:{},end:{},条件阈值:{}",ruleParam.getRuleId(),logBean.getDeviceId(),
                         ruleAtomicParam.getEventId(),ruleAtomicParam.getProperties(),
                         bufferKey,ruleAtomicParam.getRealCnt(),
                         ruleAtomicParam.getOriginStart(),ruleAtomicParam.getOriginEnd(),ruleAtomicParam.getCnt());
@@ -335,9 +339,10 @@ public class QueryRouterV4 {
                 log.warn("规则:{},用户:{},seq跨界-近期碰运气,结果step:{},条件step:{},",ruleParam.getRuleId(),logBean.getDeviceId(),ruleParam.getUserActionSequenceQueriedMaxStep(),ruleParam.getUserActionSequenceParams().size());
 
                 if (ruleParam.getUserActionSequenceQueriedMaxStep() >= totalSteps) {
+                    log.warn("规则:{},用户:{},seq跨界-近期碰运气成功,结果:{},阈值:{}",ruleParam.getRuleId(),logBean.getDeviceId(),ruleParam.getUserActionSequenceQueriedMaxStep(),totalSteps);
                     /*
                      * 将查询结果插入缓存 [ param.maxStep, 初始start, 初始end ]
-                     ******/
+                     */
                     String bufferKey1 = RuleCalcUtil.getBufferKey(logBean.getDeviceId(), originSequenceParamList);
                     bufferManager.putBufferData(bufferKey1, ruleParam.getUserActionSequenceQueriedMaxStep(), originStart, trimUnboundEnd(originEnd,logBean.getTimeStamp()));
                     return true;
@@ -350,19 +355,19 @@ public class QueryRouterV4 {
 
                 /*
                  * 2. 如果运气没碰上，则按常规流程查（先clickhouse，再state，再整合结果）
+                 * 修改条件时间窗口 [缓存截短后的rangeStart,分界点] 去clickhouse中查
                  */
-                // 修改条件时间窗口 [缓存截短后的rangeStart,分界点] 去clickhouse中查
                 modifyTimeRange(newParamList, rangeStart, splitPoint);
 
                 // 执行clickhouse查询，maxStep会在缓存value基础上累加
+                long ts = System.currentTimeMillis();
                 userActionSequenceQueryClickhouseService.queryActionSequence(logBean.getDeviceId(),  ruleParam);
+                long te = System.currentTimeMillis();
                 int farMaxStep = ruleParam.getUserActionSequenceQueriedMaxStep();
-                log.warn("规则:{},用户:{},seq跨界-clickhouse,结果step:{},条件step:{},",ruleParam.getRuleId(),logBean.getDeviceId(),ruleParam.getUserActionSequenceQueriedMaxStep(),ruleParam.getUserActionSequenceParams().size());
 
+                log.warn("规则:{},用户:{},seq跨界-clickhouse耗时:{},结果step:{},条件step:{},",ruleParam.getRuleId(),logBean.getDeviceId(),te-ts,ruleParam.getUserActionSequenceQueriedMaxStep(),ruleParam.getUserActionSequenceParams().size());
                 if (ruleParam.getUserActionSequenceQueriedMaxStep() >= totalSteps) {
-                    /*
-                     *  将查询结果插入缓存 [ farMaxStep, 缓存截短后的rangeStart, 分界点 ]
-                     */
+                    // 将查询结果插入缓存 [ farMaxStep, 缓存截短后的rangeStart, 分界点 ]
                     String bufferKey1 = RuleCalcUtil.getBufferKey(logBean.getDeviceId(), originSequenceParamList);
                     bufferManager.putBufferData(bufferKey1, ruleParam.getUserActionSequenceQueriedMaxStep(), originStart, splitPoint);
 
@@ -390,8 +395,10 @@ public class QueryRouterV4 {
             //  b.只查远期 ： 条件end<分界点，则在clickhouse中查询
             else {
                 // 注意！这里查询到maxStep结果，会将缓存结果进行累加
+                long ts = System.currentTimeMillis();
                 boolean b = userActionSequenceQueryClickhouseService.queryActionSequence(logBean.getDeviceId(), ruleParam);
-                log.warn("规则:{},用户:{},seq远期,结果step:{},条件step,",ruleParam.getRuleId(),logBean.getDeviceId(),ruleParam.getUserActionSequenceQueriedMaxStep(),ruleParam.getUserActionSequenceParams().size());
+                long te = System.currentTimeMillis();
+                log.warn("规则:{},用户:{},seq远期clickhouse查询耗时:{},结果step:{},条件step,",ruleParam.getRuleId(),logBean.getDeviceId(),te-ts,ruleParam.getUserActionSequenceQueriedMaxStep(),ruleParam.getUserActionSequenceParams().size());
 
                 // 将查询结果插入缓存 [param.maxStep,原start,原end]
                 String bufferKey1 = RuleCalcUtil.getBufferKey(logBean.getDeviceId(), originSequenceParamList);

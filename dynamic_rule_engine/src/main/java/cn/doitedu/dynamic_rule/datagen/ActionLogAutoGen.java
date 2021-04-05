@@ -70,7 +70,7 @@ public class ActionLogAutoGen {
     }
 
     private static void genBatch(Properties props) {
-        for(int i=0;i<10;i++) {
+        for(int i=0;i<40;i++) {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -85,7 +85,7 @@ public class ActionLogAutoGen {
                         ProducerRecord<String, String> record = new ProducerRecord<>("yinew_applog", log);
                         kafkaProducer.send(record);
                         try {
-                            Thread.sleep(RandomUtils.nextInt(1000, 2001));
+                            Thread.sleep(RandomUtils.nextInt(20, 21));
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
@@ -100,7 +100,7 @@ public class ActionLogAutoGen {
     public static LogBean getLogBean(){
         LogBean logBean = new LogBean();
         // 生成的账号形如： 004078
-        String account = StringUtils.leftPad(RandomUtils.nextInt(1, 100) + "", 6, "0");
+        String account = StringUtils.leftPad(RandomUtils.nextInt(1, 10000) + "", 6, "0");
         logBean.setAccount(account);
         logBean.setAppId("cn.doitedu.yinew");
         logBean.setAppVersion("2.5");
