@@ -2,11 +2,9 @@ package cn.doitedu.dynamic_rule.utils;
 
 import cn.doitedu.dynamic_rule.pojo.LogBean;
 import cn.doitedu.dynamic_rule.pojo.RuleAtomicParam;
+import org.apache.commons.lang3.time.DateUtils;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author 涛哥
@@ -87,6 +85,11 @@ public class RuleCalcUtil {
         }
 
         return sb.toString();
+    }
+
+
+    public static long getQuerySplit(){
+        return DateUtils.addHours(DateUtils.ceiling(new Date(), Calendar.HOUR), -2).getTime();
     }
 
 

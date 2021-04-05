@@ -97,7 +97,7 @@ public class UserActionCountQueryServiceStateImpl implements UserActionCountQuer
      * @throws Exception
      */
     @Override
-    public boolean queryActionCounts(String deviceId, RuleAtomicParam atomicParam) throws Exception {
+    public boolean queryActionCounts(String deviceId, RuleAtomicParam atomicParam,String ruleId) throws Exception {
 
         Iterable<LogBean> logBeans = eventState.get();
         for (LogBean logBean : logBeans) {

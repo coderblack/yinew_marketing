@@ -29,8 +29,8 @@ public class RuleSimulator {
 
         // 构造画像条件
         HashMap<String, String> userProfileParams = new HashMap<>();
-        userProfileParams.put("tag5","v1");
-        userProfileParams.put("tag6","v2");
+        userProfileParams.put("tag5","v5");
+        //userProfileParams.put("tag6","v2");
         ruleParam.setUserProfileParams(userProfileParams);
 
 
@@ -46,7 +46,7 @@ public class RuleSimulator {
         String sql1 = "select\n" +
                 "    deviceId,\n" +
                 "    count(1) as cnt\n" +
-                "from event_detail\n" +
+                "from yinew_detail\n" +
                 "where deviceId='${deviceid}' and eventId='B' and properties['p1']='v1'\n" +
                 "  and timeStamp between 0 and 6615900580000\n" +
                 "group by deviceId\n" +
@@ -66,7 +66,7 @@ public class RuleSimulator {
         String sql2 = "select\n" +
                 "    deviceId,\n" +
                 "    count(1) as cnt\n" +
-                "from event_detail\n" +
+                "from yinew_detail\n" +
                 "where deviceId='${deviceid}' and eventId='D' and properties['p2']='v2'\n" +
                 "  and timeStamp between 1617094800000 and 6615900580000\n" +
                 "group by deviceId \n" +

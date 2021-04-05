@@ -66,7 +66,7 @@ public class QueryRouterV4 {
          * 构造STATE查询服务
          */
         userActionCountQueryStateService = new UserActionCountQueryServiceStateImpl(eventState);
-        userActionSequenceQueryStateService = new UserActionSequenceQueryServiceStateImpl();
+        userActionSequenceQueryStateService = new UserActionSequenceQueryServiceStateImpl(eventState);
 
         /*
          * 构造CLICKHOUSE查询服务
@@ -92,24 +92,21 @@ public class QueryRouterV4 {
      */
     public boolean profileQuery(LogBean logBean, RuleParam ruleParam) {
 
-        /* **
-         *  从缓存中获取结果（如果hbase集群能力强，可不将画像查询结果放入缓存）
-         *******/
+        // 从缓存中获取结果（如果hbase集群能力强，可不将画像查询结果放入缓存）
 
+        // 从hbase中查询b
+        long ts = System.currentTimeMillis();
+        boolean b = userProfileQueryService.judgeProfileCondition(logBean.getDeviceId(), ruleParam);
+        long te = System.currentTimeMillis();
+        //if(b) log.warn("规则:{},用户:{},画像查询条件:{},耗时:{},结果为:{}",ruleParam.getRuleId(),logBean.getDeviceId(),ruleParam.getUserProfileParams(),te-ts,true);
+        log.warn("规则:{},用户:{},画像查询条件:{},耗时:{},结果为:{}",ruleParam.getRuleId(),logBean.getDeviceId(),ruleParam.getUserProfileParams(),te-ts,b);
+        return b;
 
-        // 从hbase中查询
-        return userProfileQueryService.judgeProfileCondition(logBean.getDeviceId(), ruleParam);
-
-        /* **
-         *  将查询结果插入缓存（如果hbase集群能力强，可不将画像查询结果放入缓存）
-         *******/
-
+        // 将查询结果插入缓存（如果hbase集群能力强，可不将画像查询结果放入缓存）
     }
-
 
     /**
      * 控制count类条件查询路由
-     *
      * @param logBean   待计算事件
      * @param ruleParam 规则参数对象
      * @return 是否匹配
@@ -130,7 +127,7 @@ public class QueryRouterV4 {
 
 
         // 计算查询分界点timestamp ：当前时间对小时取整，-1
-        long splitPoint = DateUtils.addHours(DateUtils.ceiling(new Date(), Calendar.HOUR), -2).getTime();
+        long splitPoint = RuleCalcUtil.getQuerySplit();
 
         // 将规则count条件list，按照时间窗口范围，划分成3个子list
         ArrayList<RuleAtomicParam> farRangeParamList = new ArrayList<>();  // 远期条件组
@@ -138,6 +135,7 @@ public class QueryRouterV4 {
         ArrayList<RuleAtomicParam> crossRangeParamList = new ArrayList<>();  // 跨界条件组
         // 调用方法划分
         splitParamList(userActionCountParams, splitPoint, farRangeParamList, nearRangeParamList, crossRangeParamList);
+        log.warn("规则:{},用户:{},count条件组划分,分界点:{},近期组size:{},跨界组size:{},近期组size:{}",ruleParam.getRuleId(),logBean.getDeviceId(),splitPoint,nearRangeParamList.size(),crossRangeParamList.size(),nearRangeParamList.size());
 
         /*
          * 近期条件组，批量查询
@@ -148,14 +146,16 @@ public class QueryRouterV4 {
             // 交给stateService对这一组条件进行计算
             boolean countMatch = userActionCountQueryStateService.queryActionCounts("", ruleParam);
 
-            /* **
-             *  将查询结果插入缓存
-             *******/
+            /*
+             * 将查询结果插入缓存
+             */
             for (RuleAtomicParam ruleAtomicParam : nearRangeParamList) {
                 String bufferKey = RuleCalcUtil.getBufferKey(logBean.getDeviceId(), ruleAtomicParam);
                 bufferManager.putBufferData(bufferKey, ruleAtomicParam.getRealCnts(), ruleAtomicParam.getRangeStart(), ruleAtomicParam.getRangeEnd());
-                log.info("近期查询结果插入缓存,key:{},value:{},buffer_start:{},buffer_end:{}",bufferKey,ruleAtomicParam.getRealCnts(),ruleAtomicParam.getRangeStart(), ruleAtomicParam.getRangeEnd());
+                log.warn("count近期组条件,查询结果插入缓存,key:{},value:{},buffer_start:{},buffer_end:{}",bufferKey,ruleAtomicParam.getRealCnts(),ruleAtomicParam.getRangeStart(), ruleAtomicParam.getRangeEnd());
             }
+
+            log.warn("规则:{},用户:{},count近期条件组size:{},查询结果:{}",ruleParam.getRuleId(),logBean.getDeviceId(),nearRangeParamList.size(),countMatch);
 
             if (!countMatch) return false;
         }
@@ -168,19 +168,23 @@ public class QueryRouterV4 {
         for (RuleAtomicParam crossRangeParam : crossRangeParamList) {
             long originRangeStart = crossRangeParam.getRangeStart();
             long originRangeEnd = crossRangeParam.getRangeEnd();
-            String bufferKey = RuleCalcUtil.getBufferKey(logBean.getDeviceId(), crossRangeParam);
+
 
             // 将参数时段替换[分界点,原end]，去state service中查询
             crossRangeParam.setRangeStart(splitPoint);
-            boolean b = userActionCountQueryStateService.queryActionCounts(logBean.getDeviceId(), crossRangeParam);
-            log.info("跨界count查询-近期结果,start:{},end:{},value:{},条件阈值:{}",crossRangeParam.getRangeStart(),crossRangeParam.getRangeEnd(),crossRangeParam.getRealCnts(),crossRangeParam.getCnts());
+            boolean b = userActionCountQueryStateService.queryActionCounts(logBean.getDeviceId(), crossRangeParam,ruleParam.getRuleId());
+            log.warn("规则:{},用户:{},count跨界查询-state,start:{},end:{},结果:{},条件EID:{},条件props:{},阈值:{}",ruleParam.getRuleId(),logBean.getDeviceId(),
+                    crossRangeParam.getRangeStart(),crossRangeParam.getRangeEnd(),crossRangeParam.getRealCnts(),
+                    crossRangeParam.getEventId(),crossRangeParam.getProperties(),crossRangeParam.getCnts());
 
+            String bufferKey = RuleCalcUtil.getBufferKey(logBean.getDeviceId(), crossRangeParam);
             if (b) {
-                /* **
-                 *  将查询结果插入缓存  [param.realCnt,条件start,条件end]
-                 *******/
-                bufferManager.putBufferData(bufferKey, crossRangeParam.getRealCnts(), crossRangeParam.getRangeStart(), crossRangeParam.getRangeEnd());
-                log.info("跨界count查询-近期结果已经匹配,插入缓存,key:{},value:{},start:{},end:{},条件阈值:{}",bufferKey,crossRangeParam.getRealCnts(),
+                /*
+                 * 将查询结果插入缓存  [param.realCnt,条件start,条件end]
+                 */
+                bufferManager.putBufferData(bufferKey, crossRangeParam.getRealCnts(), splitPoint, crossRangeParam.getRangeEnd());
+                log.warn("规则:{},用户:{},count跨界查询-state,匹配成功,插入缓存,key:{},value:{},start:{},end:{},条件阈值:{}",ruleParam.getRuleId(),logBean.getDeviceId(),
+                        bufferKey,crossRangeParam.getRealCnts(),
                         crossRangeParam.getRangeStart(),crossRangeParam.getRangeEnd(),crossRangeParam.getCnts());
                 continue;
             }
@@ -188,14 +192,18 @@ public class QueryRouterV4 {
             // 如果上面不满足，则将参数时段更新[原start,分界点]，去clickhouse service查询(注意：realCnt会累加)
             crossRangeParam.setRangeStart(originRangeStart);
             crossRangeParam.setRangeEnd(splitPoint);
-            boolean b1 = userActionCountQueryClickhouseService.queryActionCounts(logBean.getDeviceId(), crossRangeParam);
-            log.info("跨界count查询-远期结果,start:{},end:{},value:{},条件阈值:{}",crossRangeParam.getRangeStart(),crossRangeParam.getRangeEnd(),crossRangeParam.getRealCnts(),crossRangeParam.getCnts());
 
-            /* **
-             *  将查询结果插入缓存  [param.realCnt,原start,原end]
-             *******/
+            // 查询clickhouse
+            boolean b1 = userActionCountQueryClickhouseService.queryActionCounts(logBean.getDeviceId(), crossRangeParam,ruleParam.getRuleId());
+            log.warn("规则:{},用户:{},count跨界查询-clickhouse后总结果,start:{},end:{},结果:{},条件EID:{},条件props:{},条件阈值:{}",
+                    ruleParam.getRuleId(),logBean.getDeviceId(),
+                    crossRangeParam.getRangeStart(),crossRangeParam.getRangeEnd(),
+                    crossRangeParam.getRealCnts(),crossRangeParam.getEventId(),
+                    crossRangeParam.getProperties(),crossRangeParam.getCnts());
+
+            // 因为cnt查询结果会累加，所以缓存range应该是条件完整range [param.realCnt,原start,原end]
             bufferManager.putBufferData(bufferKey, crossRangeParam.getRealCnts(), originRangeStart, originRangeEnd);
-            log.info("跨界count查询-近期结果已经匹配,插入缓存,key:{},value:{},start:{},end:{},条件阈值:{}",bufferKey,crossRangeParam.getRealCnts(),
+            log.warn("规则:{},用户:{},count跨界查询-clickhouse后总结果,插入缓存,key:{},value:{},start:{},end:{},条件阈值:{}",ruleParam.getRuleId(),logBean.getDeviceId(),bufferKey,crossRangeParam.getRealCnts(),
                     originRangeStart,originRangeEnd,crossRangeParam.getCnts());
             if (!b1) return false;
         }
@@ -203,24 +211,28 @@ public class QueryRouterV4 {
 
         /*
          * 远期条件组，批量打包查询
-         ****/
+         */
         if (farRangeParamList.size() > 0) {
             // 将规则总参数对象中的“次数类条件”覆盖成： 远期条件组
             ruleParam.setUserActionCountParams(farRangeParamList);
             boolean b = userActionCountQueryClickhouseService.queryActionCounts(logBean.getDeviceId(), ruleParam);
+            log.warn("规则:{},用户:{},count远期条件组size:{},clickhouse总结果:{}",ruleParam.getRuleId(),logBean.getDeviceId(),farRangeParamList.size(),b);
 
-            /* **
-             *  将查询结果插入缓存
-             *******/
+            // 将查询结果插入缓存
             for (RuleAtomicParam ruleAtomicParam : farRangeParamList) {
                 String bufferKey = RuleCalcUtil.getBufferKey(logBean.getDeviceId(), ruleAtomicParam);
                 bufferManager.putBufferData(bufferKey, ruleAtomicParam.getRealCnts(), ruleAtomicParam.getRangeStart(), ruleAtomicParam.getRangeEnd());
+                log.warn("规则:{},用户:{},count远期条件EID:{},props:{},查询-clickhouse后总结果,插入缓存,key:{},value:{},start:{},end:{},条件阈值:{}",ruleParam.getRuleId(),logBean.getDeviceId(),
+                        ruleAtomicParam.getEventId(),ruleAtomicParam.getProperties(),
+                        bufferKey,ruleAtomicParam.getRealCnts(),
+                        ruleAtomicParam.getRangeStart(),ruleAtomicParam.getRangeEnd(),ruleAtomicParam.getCnts());
             }
-
             return b;
         }
 
-
+        /*
+         * 如果上述查询全部通过，则返回总结果true
+         */
         return true;
     }
 
@@ -248,9 +260,9 @@ public class QueryRouterV4 {
          *   依据查询后的结果，如果已经完全匹配的条件，则直接返回最终结果true
          *   如果是部分有效的，则将条件的时间窗口起始点更新为缓存有效窗口的结束点，并截断条件序列
          *   比如，原始条件是  [A  B   C   D](t1,t10)，
-         *        在缓存中查到  [A   B](t1,t5)
-         *        那么，我们就要把后续的处理条件修改：  [C   D](t6,t10)
-         *****/
+         *     在缓存中查到  [A   B](t1,t5)
+         *     那么，我们就要把后续的处理条件修改：  [C   D](t6,t10)
+         */
         String bufferKey = RuleCalcUtil.getBufferKey(logBean.getDeviceId(), originSequenceParamList); // 拼接bufferKey
         BufferResult bufferResult = bufferManager.getBufferData(bufferKey, originStart, originEnd, totalSteps); // 从redis中取数据
         switch (bufferResult.getBufferAvailableLevel()) {
@@ -269,7 +281,7 @@ public class QueryRouterV4 {
             case WHOLE_AVL:  // 缓存完全匹配，则直接返回
                 return true;
         }
-
+        log.warn("规则:{},用户:{},seq缓存查询完毕,avl状态:{},value:{}",ruleParam.getRuleId(),logBean.getDeviceId(),bufferResult.getBufferAvailableLevel(),bufferResult.getBufferValue());
 
         // 如果序列条件有内容，才开始计算
         List<RuleAtomicParam> newParamList = ruleParam.getUserActionSequenceParams();
@@ -291,7 +303,9 @@ public class QueryRouterV4 {
             // a. 只查近期 ：条件start>分界点，则仅在state中查询
             if (rangeStart >= splitPoint) {
                 // 注意！这里查询到maxStep结果，会将缓存结果进行累加
-                boolean b = userActionSequenceQueryStateService.queryActionSequence("", eventState, ruleParam);
+                boolean b = userActionSequenceQueryStateService.queryActionSequence("",  ruleParam);
+                log.warn("规则:{},用户:{},seq近期,start:{},split:{},end:{},结果step:{},条件step:{},",ruleParam.getRuleId(),logBean.getDeviceId(),
+                        rangeStart,splitPoint,rangeEnd,ruleParam.getUserActionSequenceQueriedMaxStep(),ruleParam.getUserActionSequenceParams().size());
 
                 // 将查询结果插入缓存 ==>   key:初始条件，value： [param.maxStep|原始start,原始end]
                 String bufferKey1 = RuleCalcUtil.getBufferKey(logBean.getDeviceId(), originSequenceParamList);
@@ -312,18 +326,21 @@ public class QueryRouterV4 {
                 int bufferValue = ruleParam.getUserActionSequenceQueriedMaxStep();
 
                 // 执行查询，maxStep会在缓存value基础上累加
-                userActionSequenceQueryStateService.queryActionSequence(logBean.getDeviceId(), eventState, ruleParam);
+                userActionSequenceQueryStateService.queryActionSequence(logBean.getDeviceId(),  ruleParam);
+                log.warn("规则:{},用户:{},seq跨界-近期碰运气,结果step:{},条件step:{},",ruleParam.getRuleId(),logBean.getDeviceId(),ruleParam.getUserActionSequenceQueriedMaxStep(),ruleParam.getUserActionSequenceParams().size());
+
                 if (ruleParam.getUserActionSequenceQueriedMaxStep() >= totalSteps) {
                     /*
                      * 将查询结果插入缓存 [ param.maxStep, 初始start, 初始end ]
                      ******/
                     String bufferKey1 = RuleCalcUtil.getBufferKey(logBean.getDeviceId(), originSequenceParamList);
                     bufferManager.putBufferData(bufferKey1, ruleParam.getUserActionSequenceQueriedMaxStep(), originStart, originEnd);
-
                     return true;
                 } else {
                     // 将参数中的maxStep恢复到缓存查完后的值
                     ruleParam.setUserActionSequenceQueriedMaxStep(bufferValue);
+                    log.warn("规则:{},用户:{},seq跨界-近期碰运气失败,恢复step:{}",ruleParam.getRuleId(),logBean.getDeviceId(),ruleParam.getUserActionSequenceQueriedMaxStep());
+
                 }
 
                 /*
@@ -333,8 +350,10 @@ public class QueryRouterV4 {
                 modifyTimeRange(newParamList, rangeStart, splitPoint);
 
                 // 执行clickhouse查询，maxStep会在缓存value基础上累加
-                userActionSequenceQueryClickhouseService.queryActionSequence(logBean.getDeviceId(), eventState, ruleParam);
+                userActionSequenceQueryClickhouseService.queryActionSequence(logBean.getDeviceId(),  ruleParam);
                 int farMaxStep = ruleParam.getUserActionSequenceQueriedMaxStep();
+                log.warn("规则:{},用户:{},seq跨界-clickhouse,结果step:{},条件step:{},",ruleParam.getRuleId(),logBean.getDeviceId(),ruleParam.getUserActionSequenceQueriedMaxStep(),ruleParam.getUserActionSequenceParams().size());
+
                 if (ruleParam.getUserActionSequenceQueriedMaxStep() >= totalSteps) {
                     /*
                      *  将查询结果插入缓存 [ farMaxStep, 缓存截短后的rangeStart, 分界点 ]
@@ -354,7 +373,8 @@ public class QueryRouterV4 {
                 // 在ck查询结果上再次截短条件序列
                 ruleParam.setUserActionSequenceParams(originSequenceParamList.subList(farMaxStep, originSequenceParamList.size()));
                 // 执行state查询，maxStep会在ck查询结果上（包含缓存value）累加
-                userActionSequenceQueryStateService.queryActionSequence(logBean.getDeviceId(), eventState, ruleParam);
+                userActionSequenceQueryStateService.queryActionSequence(logBean.getDeviceId(),  ruleParam);
+                log.warn("规则:{},用户:{},seq跨界-state,结果step:{},截断条件step:{},",ruleParam.getRuleId(),logBean.getDeviceId(),ruleParam.getUserActionSequenceQueriedMaxStep(),ruleParam.getUserActionSequenceParams().size());
 
                 // 将查询结果插入缓存 [rule.maxStep, 原originStart, 原originEnd ]
                 String bufferKey1 = RuleCalcUtil.getBufferKey(logBean.getDeviceId(), originSequenceParamList);
@@ -366,7 +386,8 @@ public class QueryRouterV4 {
             //  b.只查远期 ： 条件end<分界点，则在clickhouse中查询
             else {
                 // 注意！这里查询到maxStep结果，会将缓存结果进行累加
-                boolean b = userActionSequenceQueryClickhouseService.queryActionSequence(logBean.getDeviceId(), null, ruleParam);
+                boolean b = userActionSequenceQueryClickhouseService.queryActionSequence(logBean.getDeviceId(), ruleParam);
+                log.warn("规则:{},用户:{},seq远期,结果step:{},条件step,",ruleParam.getRuleId(),logBean.getDeviceId(),ruleParam.getUserActionSequenceQueriedMaxStep(),ruleParam.getUserActionSequenceParams().size());
 
                 // 将查询结果插入缓存 [param.maxStep,原start,原end]
                 String bufferKey1 = RuleCalcUtil.getBufferKey(logBean.getDeviceId(), originSequenceParamList);
@@ -406,45 +427,36 @@ public class QueryRouterV4 {
      */
     private void updateRuleParamByBufferResult(LogBean logBean, List<RuleAtomicParam> userActionCountParams) {
         for (int i = 0; i < userActionCountParams.size(); i++) {
-
             // 从条件list中取出条件i
             RuleAtomicParam countParam = userActionCountParams.get(i);
+            long originStart = countParam.getRangeStart();
+            long originEnd = countParam.getRangeEnd();
             // 拼接bufferKey
             String bufferKey = RuleCalcUtil.getBufferKey(logBean.getDeviceId(), countParam);
 
             // 从redis中取数据
             BufferResult bufferResult = bufferManager.getBufferData(bufferKey, countParam);
-
             switch (bufferResult.getBufferAvailableLevel()) {
                 // 如果是部分有效
                 case PARTIAL_AVL:
                     // 则更新规则条件的窗口起始点
-                    log.info("缓存有效:{},key:{},value:{},条件阈值:{},缓存start:{},缓存end{},条件start:{},条件end:{}",
-                            PARTIAL_AVL,bufferKey,bufferResult.getBufferValue(),countParam.getCnts(),
-                            bufferResult.getBufferRangeStart(),bufferResult.getBufferRangeEnd(),
-                            countParam.getRangeStart(),countParam.getRangeEnd());
-
                     countParam.setRangeStart(bufferResult.getBufferRangeEnd());
                     // 将value值，放入参数对象的realCnt中
                     countParam.setRealCnts(bufferResult.getBufferValue());
                     break;
                 // 如果是完全有效，则剔除该条件
                 case WHOLE_AVL:
-                    log.info("缓存有效:{},key:{},value:{},条件阈值:{},缓存start:{},缓存end{},条件start:{},条件end:{}",
-                            WHOLE_AVL,bufferKey,bufferResult.getBufferValue(),countParam.getCnts(),
-                            bufferResult.getBufferRangeStart(),bufferResult.getBufferRangeEnd(),
-                            countParam.getRangeStart(),countParam.getRangeEnd());
                     // 剔除条件
                     userActionCountParams.remove(i);
                     i--;
                     break;
                 case UN_AVL:
-                    log.info("缓存无效:{},key:{},value:{},条件阈值:{},缓存start:{},缓存end{},条件start:{},条件end:{}",
-                            UN_AVL,bufferKey,bufferResult.getBufferValue(),countParam.getCnts(),
-                            bufferResult.getBufferRangeStart(),bufferResult.getBufferRangeEnd(),
-                            countParam.getRangeStart(),countParam.getRangeEnd());
             }
 
+            log.warn("用户:{},count缓存avl:{},key:{},value:{},条件阈值:{},缓存start:{},缓存end:{},条件初始start:{},条件初始end:{},更新后start:{},更新后end:{},更新后条件size:{}",logBean.getDeviceId(),
+                    bufferResult.getBufferAvailableLevel(),bufferKey,bufferResult.getBufferValue(),countParam.getCnts(),
+                    bufferResult.getBufferRangeStart(),bufferResult.getBufferRangeEnd(),originStart,originEnd,
+                    countParam.getRangeStart(),countParam.getRangeEnd(),userActionCountParams.size());
         }
     }
 

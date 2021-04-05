@@ -3,6 +3,7 @@ package cn.doitedu.dynamic_rule.service;
 import cn.doitedu.dynamic_rule.pojo.LogBean;
 import cn.doitedu.dynamic_rule.pojo.RuleParam;
 import cn.doitedu.dynamic_rule.utils.ConnectionUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.state.ListState;
 
 import java.sql.Connection;
@@ -17,6 +18,7 @@ import java.sql.Statement;
  * @date 2021-03-30
  * @desc 行为序列类路径匹配查询service，clickhouse实现
  */
+@Slf4j
 public class UserActionSequenceQueryServiceClickhouseImpl implements UserActionSequenceQueryService{
 
     private Connection conn;
@@ -29,20 +31,22 @@ public class UserActionSequenceQueryServiceClickhouseImpl implements UserActionS
      * 从clickhouse中查询行为序列条件是否满足
      *
      * @param deviceId
-     * @param eventState
      * @param ruleParam
      * @return
      * @throws Exception
      */
     @Override
-    public boolean queryActionSequence(String deviceId,ListState<LogBean> eventState, RuleParam ruleParam) throws Exception {
+    public boolean queryActionSequence(String deviceId, RuleParam ruleParam) throws Exception {
         // 获取规则中，路径模式的总步骤数
         int totalStep = ruleParam.getUserActionSequenceParams().size();
 
         // 取出查询sql
         String sql = ruleParam.getActionSequenceQuerySql();
         // 需要将sql中的deviceId占位符替换成真实deviceId
-        sql.replaceAll("\\$\\{deviceid\\}",deviceId);
+        /*sql.replaceAll("\\$\\{deviceid\\}",deviceId);*/
+        // TODO bug修复，需要重新赋值
+        sql = sql.replaceAll("\\$\\{deviceid\\}",deviceId);
+        log.debug("clickhouse查询seq条件，sql为：\n {}",sql);
 
         Statement stmt = conn.createStatement();
         // 执行查询
@@ -68,8 +72,7 @@ public class UserActionSequenceQueryServiceClickhouseImpl implements UserActionS
         // 将结果塞回规则参数
         ruleParam.setUserActionSequenceQueriedMaxStep(ruleParam.getUserActionSequenceQueriedMaxStep()+maxStep);
 
-        System.out.println("查询了clickhouse,耗时：" + (e-s) +" ms,查询到的最大匹配步骤为：" + maxStep +",条件总步骤数为： " + totalStep);
-
+        log.info("clickhouse序列查询，耗时:{},查询到的最大步数:{},条件总步数:{}",(e-s),maxStep,totalStep);
         return maxStep==totalStep;
     }
 }

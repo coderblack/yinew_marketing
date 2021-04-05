@@ -15,5 +15,5 @@ import org.apache.flink.api.common.state.ListState;
  */
 public interface UserActionSequenceQueryService {
 
-    public boolean queryActionSequence(String deviceId,ListState<LogBean> eventState, RuleParam ruleParam) throws Exception;
+    public boolean queryActionSequence(String deviceId, RuleParam ruleParam) throws Exception;
 }

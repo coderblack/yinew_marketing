@@ -97,7 +97,7 @@ public class ActionSequenceQueryClickhouseTest {
 
         UserActionSequenceQueryServiceClickhouseImpl impl = new UserActionSequenceQueryServiceClickhouseImpl();
 
-        boolean b = impl.queryActionSequence("000001", null, ruleParam);
+        boolean b = impl.queryActionSequence("000001",  ruleParam);
         System.out.println(ruleParam.getUserActionSequenceQueriedMaxStep());
         System.out.println(b);
 

@@ -38,7 +38,7 @@ public class QueryRouterV3 {
          * 构造底层的核心STATE查询服务
          */
         userActionCountQueryStateService = new UserActionCountQueryServiceStateImpl(null);
-        userActionSequenceQueryStateService = new UserActionSequenceQueryServiceStateImpl();
+        userActionSequenceQueryStateService = new UserActionSequenceQueryServiceStateImpl(null);
 
         /**
          * 构造底层的核心CLICKHOUSE查询服务
@@ -127,13 +127,13 @@ public class QueryRouterV3 {
 
             // 将参数对象的rangeStart换成分界点，去state service中查询一下
             crossRangeParam.setRangeStart(splitPoint);
-            boolean b = userActionCountQueryStateService.queryActionCounts(logBean.getDeviceId(),  crossRangeParam);
+            boolean b = userActionCountQueryStateService.queryActionCounts(logBean.getDeviceId(),  crossRangeParam,ruleParam.getRuleId());
             if (b) continue;
 
             // 如果上面不满足，则将rangeEnd换成分界点，去clickhouse service查询
             crossRangeParam.setRangeStart(originRangeStart);
             crossRangeParam.setRangeEnd(splitPoint);
-            boolean b1 = userActionCountQueryClickhouseService.queryActionCounts(logBean.getDeviceId(), crossRangeParam);
+            boolean b1 = userActionCountQueryClickhouseService.queryActionCounts(logBean.getDeviceId(), crossRangeParam,ruleParam.getRuleId());
 
             if (!b1) return false;
         }
@@ -172,7 +172,7 @@ public class QueryRouterV3 {
              * 如果条件的时间窗口起始点>分界点，则在state中查询
              */
             if(rangeStart>=splitPoint){
-                boolean b = userActionSequenceQueryStateService.queryActionSequence("", eventState, ruleParam);
+                boolean b = userActionSequenceQueryStateService.queryActionSequence("",  ruleParam);
                 return b;
             }
 
@@ -181,7 +181,7 @@ public class QueryRouterV3 {
              * 如果条件的时间窗口结束点<分界点，则在clickhouse中查询
              */
             else if(rangeEnd<splitPoint){
-                boolean b = userActionSequenceQueryClickhouseService.queryActionSequence(logBean.getDeviceId(), null, ruleParam);
+                boolean b = userActionSequenceQueryClickhouseService.queryActionSequence(logBean.getDeviceId(),  ruleParam);
                 return b;
             }
 
@@ -196,7 +196,7 @@ public class QueryRouterV3 {
                 // 修改时间窗口
                 modifyTimeRange(userActionSequenceParams,splitPoint,rangeEnd);
                 // 执行查询
-                boolean b = userActionSequenceQueryStateService.queryActionSequence(logBean.getDeviceId(), eventState, ruleParam);
+                boolean b = userActionSequenceQueryStateService.queryActionSequence(logBean.getDeviceId(),  ruleParam);
                 if(b) return true;
 
                 //
@@ -208,7 +208,7 @@ public class QueryRouterV3 {
                 // 修改时间窗口
                 modifyTimeRange(userActionSequenceParams,rangeStart,splitPoint);
                 // 执行clickhouse查询
-                boolean b1 = userActionSequenceQueryClickhouseService.queryActionSequence(logBean.getDeviceId(), eventState, ruleParam);
+                boolean b1 = userActionSequenceQueryClickhouseService.queryActionSequence(logBean.getDeviceId(),  ruleParam);
                 int farMaxStep = ruleParam.getUserActionSequenceQueriedMaxStep();
                 if(b1) return true;
 
@@ -221,7 +221,7 @@ public class QueryRouterV3 {
                 // 截短条件序列
                 ruleParam.setUserActionSequenceParams(userActionSequenceParams.subList(farMaxStep,userActionSequenceParams.size()));
                 // 执行state查询
-                boolean b2 = userActionSequenceQueryStateService.queryActionSequence(logBean.getDeviceId(), eventState, ruleParam);
+                boolean b2 = userActionSequenceQueryStateService.queryActionSequence(logBean.getDeviceId(),  ruleParam);
                 int nearMaxStep = ruleParam.getUserActionSequenceQueriedMaxStep();
 
                 // 将整合最终结果，塞回参数对象

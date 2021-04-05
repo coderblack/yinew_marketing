@@ -58,7 +58,7 @@ public class RuleProcessFunctionV2 extends KeyedProcessFunction<String, LogBean,
          * 构造底层的核心STATE查询服务
          */
         userActionCountQueryStateService = new UserActionCountQueryServiceStateImpl(eventState);
-        userActionSequenceQueryStateService = new UserActionSequenceQueryServiceStateImpl();
+        userActionSequenceQueryStateService = new UserActionSequenceQueryServiceStateImpl(eventState);
 
         /**
          * 构造底层的核心CLICKHOUSE查询服务
@@ -157,14 +157,14 @@ public class RuleProcessFunctionV2 extends KeyedProcessFunction<String, LogBean,
 
             // 如果序列模型中的起始时间>=2小时分界点，则交给state服务模块去查询
             if(userActionSequenceParams.size()>0 && userActionSequenceParams.get(0).getRangeStart()>=splitPoint){
-                boolean b = userActionSequenceQueryStateService.queryActionSequence("", eventState, ruleParam);
+                boolean b = userActionSequenceQueryStateService.queryActionSequence("",  ruleParam);
                 if(!b) return ;
             }
 
 
             // 如果序列模型中的起始时间<2小时分界点，则交给clickhouse服务模块去查询
             if(userActionSequenceParams!=null && userActionSequenceParams.size()>0 && userActionSequenceParams.get(0).getRangeStart()<splitPoint){
-                boolean b = userActionSequenceQueryClickhouseService.queryActionSequence(logBean.getDeviceId(), null, ruleParam);
+                boolean b = userActionSequenceQueryClickhouseService.queryActionSequence(logBean.getDeviceId(),  ruleParam);
                 if(!b) return ;
             }
 

@@ -42,7 +42,7 @@ public class RuleProcessFunction extends KeyedProcessFunction<String, LogBean, R
          */
         userProfileQueryService = new UserProfileQueryServiceHbaseImpl();
         userActionCountQueryService = new UserActionCountQueryServiceStateImpl(eventState);
-        userActionSequenceQueryService = new UserActionSequenceQueryServiceStateImpl();
+        userActionSequenceQueryService = new UserActionSequenceQueryServiceStateImpl(eventState);
 
         /**
          * 获取规则参数
@@ -72,7 +72,7 @@ public class RuleProcessFunction extends KeyedProcessFunction<String, LogBean, R
             if(!countMatch) return;
 
             // 查询行为序列条件
-            boolean sequenceMatch = userActionSequenceQueryService.queryActionSequence(null,eventState, ruleParam);
+            boolean sequenceMatch = userActionSequenceQueryService.queryActionSequence(null, ruleParam);
             if(!sequenceMatch) return;
 
 

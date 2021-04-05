@@ -3,6 +3,7 @@ package cn.doitedu.dynamic_rule.service;
 import cn.doitedu.dynamic_rule.pojo.BufferAvailableLevel;
 import cn.doitedu.dynamic_rule.pojo.BufferResult;
 import cn.doitedu.dynamic_rule.pojo.RuleAtomicParam;
+import lombok.extern.slf4j.Slf4j;
 import redis.clients.jedis.Jedis;
 
 /**
@@ -13,6 +14,7 @@ import redis.clients.jedis.Jedis;
  * @date 2021-03-31
  * @desc 缓存管理器
  */
+@Slf4j
 public class BufferManager {
     Jedis jedis;
 
@@ -48,7 +50,7 @@ public class BufferManager {
         /*
          *  解析缓存数据
          *  格式:   2|t1,t8
-         *****/
+         */
         String data = jedis.get(bufferKey);
         // data可能为null，这里直接切，会产生空指针异常
         if(data ==null || data.split("\\|").length<2) return bufferResult;
@@ -61,17 +63,17 @@ public class BufferManager {
         bufferResult.setBufferRangeStart(Long.parseLong(timeRange[0]));
         bufferResult.setBufferRangeEnd(Long.parseLong(timeRange[1]));
 
-        /**
+        /*
          * 判断缓存有效性： 完全有效
          */
         if(paramRangeStart<= bufferResult.getBufferRangeStart()
                 && paramRangeEnd>=bufferResult.getBufferRangeEnd()
                 && bufferResult.getBufferValue()>=threshold){
-
             bufferResult.setBufferAvailableLevel(BufferAvailableLevel.WHOLE_AVL);
+            log.warn("count缓存完全匹配");
         }
 
-        /**
+        /*
          * 判断缓存有效性： 部分有效
          */
         if(paramRangeStart == bufferResult.getBufferRangeStart() && paramRangeEnd>=bufferResult.getBufferRangeEnd()){
@@ -80,6 +82,7 @@ public class BufferManager {
             // 更新外部后续查询的条件窗口起始点
             bufferResult.setOutSideQueryStart(bufferResult.getBufferRangeEnd());
 
+            log.warn("count缓存部分匹配");
         }
 
         return bufferResult;

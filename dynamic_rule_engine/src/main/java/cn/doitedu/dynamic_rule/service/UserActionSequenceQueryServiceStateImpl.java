@@ -8,7 +8,6 @@ import cn.doitedu.dynamic_rule.utils.RuleCalcUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.api.common.state.ListState;
-import org.apache.flink.util.IterableUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +23,14 @@ import java.util.List;
 @Slf4j
 public class UserActionSequenceQueryServiceStateImpl implements UserActionSequenceQueryService {
 
+    //  eventState flink中存储用户事件明细的state
+    ListState<LogBean> eventState;
+
+    public UserActionSequenceQueryServiceStateImpl(ListState<LogBean> eventState){
+        this.eventState = eventState;
+    }
+
+
 
     /**
      * 行为序列： A(p1=v2,p3=v8) B(p6=v9,p7=v7)  C()
@@ -31,24 +38,24 @@ public class UserActionSequenceQueryServiceStateImpl implements UserActionSequen
      * <p>
      * 查询规则条件中的行为序列条件是否满足
      * 会将查询到的最大匹配步骤，set回 ruleParam对象中
-     * @param eventState flink中存储用户事件明细的state
      * @param ruleParam  规则参数对象
      * @return 条件成立与否
      */
     @Override
-    public boolean queryActionSequence(String deviceId,ListState<LogBean> eventState, RuleParam ruleParam) throws Exception {
+    public boolean queryActionSequence(String deviceId,RuleParam ruleParam) throws Exception {
 
 
         Iterable<LogBean> logBeans = eventState.get();
         List<RuleAtomicParam> userActionSequenceParams = ruleParam.getUserActionSequenceParams();
 
         // 调用helper统计实际匹配的最大步骤号
-        int maxStep = queryActionSequenceHelper(logBeans, userActionSequenceParams);
+        int maxStep = queryActionSequenceHelper2(logBeans, userActionSequenceParams);
 
         // 将这个maxStep丢回规则参数对象，以便本服务的调用者可以根据需要获取到这个最大匹配步骤号
         ruleParam.setUserActionSequenceQueriedMaxStep(ruleParam.getUserActionSequenceQueriedMaxStep()+maxStep);
 
         // 然后判断整个序列条件是否满足：真实最大匹配步骤是否等于条件的步骤数
+        log.debug("序列匹配:state,规则:{},用户:{},结果maxStep：{},条件步数:{}, ",ruleParam.getRuleId(),deviceId,maxStep,userActionSequenceParams.size());
         return maxStep == userActionSequenceParams.size();
     }
 
@@ -56,9 +63,9 @@ public class UserActionSequenceQueryServiceStateImpl implements UserActionSequen
     /**
      * 统计明细事件中，与序列条件匹配到的最大步骤
      *
-     * @param events
-     * @param userActionSequenceParams
-     * @return
+     * @param events 事件明细
+     * @param userActionSequenceParams 行为序列规则条件
+     * @return 行为次数
      */
     public int queryActionSequenceHelper(Iterable<LogBean> events, List<RuleAtomicParam> userActionSequenceParams) {
 
@@ -95,10 +102,9 @@ public class UserActionSequenceQueryServiceStateImpl implements UserActionSequen
 
     /**
      * 序列匹配，性能改进版
-     *
-     * @param events
-     * @param userActionSequenceParams
-     * @return
+     * @param events 事件明细
+     * @param userActionSequenceParams 行为序列规则条件
+     * @return 次数
      */
     public int queryActionSequenceHelper2(Iterable<LogBean> events, List<RuleAtomicParam> userActionSequenceParams) {
 
@@ -109,7 +115,6 @@ public class UserActionSequenceQueryServiceStateImpl implements UserActionSequen
             }
             if (maxStep == userActionSequenceParams.size()) break;
         }
-        log.debug("在state中步骤匹配计算完成： 查询到的最大步骤号为： " + maxStep + ",条件中的步骤数为：" + userActionSequenceParams.size());
         return maxStep;
     }
 

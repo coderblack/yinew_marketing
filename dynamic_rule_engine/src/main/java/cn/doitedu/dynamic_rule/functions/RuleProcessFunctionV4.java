@@ -3,7 +3,6 @@ package cn.doitedu.dynamic_rule.functions;
 import cn.doitedu.dynamic_rule.pojo.LogBean;
 import cn.doitedu.dynamic_rule.pojo.ResultBean;
 import cn.doitedu.dynamic_rule.pojo.RuleParam;
-import cn.doitedu.dynamic_rule.service.QueryRouterV3;
 import cn.doitedu.dynamic_rule.service.QueryRouterV4;
 import cn.doitedu.dynamic_rule.utils.RuleSimulator;
 import lombok.extern.slf4j.Slf4j;
@@ -35,14 +34,14 @@ public class RuleProcessFunctionV4 extends KeyedProcessFunction<String, LogBean,
     @Override
     public void open(Configuration parameters) throws Exception {
 
-        /**
+        /*
          * 获取规则参数
          * TODO 规则的获取，现在是通过模拟器生成
          * TODO 后期需要改造成从外部获取
          */
         ruleParam = RuleSimulator.getRuleParam();
 
-        /**
+        /*
          * 准备一个存储明细事件的state
          * 控制state的ttl周期为最近2小时
          */
@@ -59,10 +58,10 @@ public class RuleProcessFunctionV4 extends KeyedProcessFunction<String, LogBean,
 
     /**
      * 规则计算核心方法
-     * @param logBean
-     * @param ctx
-     * @param out
-     * @throws Exception
+     * @param logBean 事件bean
+     * @param ctx 上下文
+     * @param out 输出
+     * @throws Exception 异常
      */
     @Override
     public void processElement(LogBean logBean, Context ctx, Collector<ResultBean> out) throws Exception {
@@ -71,7 +70,7 @@ public class RuleProcessFunctionV4 extends KeyedProcessFunction<String, LogBean,
         // 超过2小时的logBean会被自动清除（前面设置了ttl存活时长）
         eventState.add(logBean);
 
-        /**
+        /*
          * 主逻辑，进行规则触发和计算
          */
         if (ruleParam.getTriggerParam().getEventId().equals(logBean.getEventId())) {

@@ -64,24 +64,33 @@ public class UserProfileQueryServiceHbaseImpl implements UserProfileQueryService
 
 
         // 调用hbase的api执行查询
+        String valueStr = "";
+        long ts =0;
+        long te =0;
         try {
-            long s = System.currentTimeMillis();
+            ts = System.currentTimeMillis();
             Result result = table.get(get);
             // 判断结果和条件中的要求是否一致
             for (String tagName : tagNames) {
                 // 从查询结果中取出该标签的值
                 byte[] valueBytes = result.getValue("f".getBytes(), tagName.getBytes());
                 // 判断查询到的value和条件中要求的value是否一致，如果不一致，方法直接返回：false
-                if(!(valueBytes!=null && new String(valueBytes).equals(userProfileParams.get(tagName)))){
-                    long e = System.currentTimeMillis();
-                    log.debug("规则:{},用户:{},查询了Hbase,要求的条件是:{},{},查询结果为:{},匹配失败,耗费时长:{}",ruleParam.getRuleId(),
-                            deviceId,tagName,userProfileParams.get(tagName),new String(valueBytes),e-s);
+                te = System.currentTimeMillis();
+                if(valueBytes == null){
+                    log.debug("规则:{},用户:{},查询Hbase,要求的条件是:{},{},查询结果为:{},匹配失败,耗费时长:{}",ruleParam.getRuleId(),
+                            deviceId,tagName,userProfileParams.get(tagName),"null",te-ts);
+                    return false;
+                }
+                valueStr = new String(valueBytes);
+                if(!valueStr.equals(userProfileParams.get(tagName))){
+                    log.debug("规则:{},用户:{},查询Hbase,要求的条件是:{},{},查询结果为:{},匹配失败,耗费时长:{}",ruleParam.getRuleId(),
+                            deviceId,tagName,userProfileParams.get(tagName),new String(valueBytes),te-ts);
                     return false;
                 }
             }
 
-            log.debug("规则:{},用户:{},查询了Hbase,匹配成功",ruleParam.getRuleId(),deviceId);
-
+            log.debug("规则:{},用户:{},查询Hbase,要求的条件是:{},查询结果为:{},匹配成功,耗费时长:{}",ruleParam.getRuleId(),
+                    deviceId,userProfileParams,valueStr,te-ts);
             // 如果上面的for循环走完了，那说明每个标签的查询值都等于条件中要求的值，则可以返回true
             return true;
         } catch (IOException e) {

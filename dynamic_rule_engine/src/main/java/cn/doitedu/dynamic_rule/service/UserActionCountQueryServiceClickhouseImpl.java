@@ -5,6 +5,7 @@ import cn.doitedu.dynamic_rule.pojo.RuleAtomicParam;
 import cn.doitedu.dynamic_rule.pojo.RuleParam;
 import cn.doitedu.dynamic_rule.utils.ClickhouseCountQuerySqlUtil;
 import cn.doitedu.dynamic_rule.utils.ConnectionUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.state.ListState;
 
 import java.sql.Connection;
@@ -13,8 +14,8 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.List;
 
+@Slf4j
 public class UserActionCountQueryServiceClickhouseImpl implements UserActionCountQueryService {
-
 
     private Connection conn;
 
@@ -39,11 +40,8 @@ public class UserActionCountQueryServiceClickhouseImpl implements UserActionCoun
 
         // 遍历每一个原子条件进行查询判断
         for (RuleAtomicParam atomicParam : userActionCountParams) {
-
-            queryActionCounts(deviceId,atomicParam);
-
+            queryActionCounts(deviceId,atomicParam,ruleParam.getRuleId());
         }
-
         // 如果走到这一句代码，说明上面的每一个原子条件查询后都满足规则，那么返回最终结果true
         return true;
     }
@@ -57,11 +55,14 @@ public class UserActionCountQueryServiceClickhouseImpl implements UserActionCoun
      * @throws Exception 异常
      */
     @Override
-    public boolean queryActionCounts(String deviceId, RuleAtomicParam atomicParam) throws Exception {
+    public boolean queryActionCounts(String deviceId, RuleAtomicParam atomicParam,String ruleId) throws Exception {
         // 对当前的原子条件拼接查询sql
         String sql = atomicParam.getCountQuerySql();
         // 需要将sql中的deviceId占位符替换成真实deviceId
-        sql.replaceAll("\\$\\{deviceid\\}",deviceId);
+        /*sql.replaceAll("\\$\\{deviceid\\}",deviceId)*/
+        // TODO bug修复，之前的replaceAll返回结果没有重新赋值给变量sql
+        sql = sql.replaceAll("\\$\\{deviceid\\}", deviceId);
+        log.debug("clickhouse查询count条件，sql为：\n {}" ,sql);
 
         // 获取一个clickhouse 的jdbc连接
         Statement statement = conn.createStatement();
@@ -76,6 +77,7 @@ public class UserActionCountQueryServiceClickhouseImpl implements UserActionCoun
             // 从结果中取出cnt字段
             int realCnt = (int) resultSet.getLong(2);
             // 将查询结果赛回规则参数对象
+            log.info("规则:{},用户:{},查询clickhouse次数条件,查询前cnt:{},本次cnt:{},累加后cnt:{}",ruleId,deviceId,atomicParam.getRealCnts(),realCnt,atomicParam.getRealCnts()+realCnt);
             atomicParam.setRealCnts(atomicParam.getRealCnts() + realCnt);
         }
 

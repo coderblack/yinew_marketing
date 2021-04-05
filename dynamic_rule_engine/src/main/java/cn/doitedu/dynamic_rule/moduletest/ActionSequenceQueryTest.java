@@ -80,7 +80,7 @@ public class ActionSequenceQueryTest {
 
 
         // 调用sevice计算
-        UserActionSequenceQueryServiceStateImpl service = new UserActionSequenceQueryServiceStateImpl();
+        UserActionSequenceQueryServiceStateImpl service = new UserActionSequenceQueryServiceStateImpl(null);
         int maxStep = service.queryActionSequenceHelper2(eventList, ruleParams);
         System.out.println(maxStep);
 

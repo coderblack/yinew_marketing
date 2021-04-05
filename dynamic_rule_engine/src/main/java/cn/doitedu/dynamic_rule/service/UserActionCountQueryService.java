@@ -17,6 +17,6 @@ public interface UserActionCountQueryService {
 
     public boolean queryActionCounts(String deviceId, RuleParam ruleParam) throws Exception;
 
-    public boolean queryActionCounts(String deviceId, RuleAtomicParam atomicParam) throws Exception;
+    public boolean queryActionCounts(String deviceId, RuleAtomicParam atomicParam,String ruleId) throws Exception;
 
 }
