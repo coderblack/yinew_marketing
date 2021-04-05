@@ -27,7 +27,7 @@ public class RuleAtomicParam implements Serializable {
     private HashMap<String,String> properties;
 
     // 规则要求的阈值
-    private int cnts;
+    private int cnt;
 
     // 要求的事件发生时间段起始
     private long rangeStart;
@@ -38,9 +38,20 @@ public class RuleAtomicParam implements Serializable {
     // 条件对应的clickhouse查询sql
     private String countQuerySql;
 
-
     // 用于记录查询服务所返回的查询值
-    private int realCnts;
+    private int realCnt;
+
+    // 用于记录初始 range
+    private long originStart;
+    public void setOriginStart(long originStart){
+        this.originStart = originStart;
+        this.rangeStart = rangeStart;
+    }
+    private long originEnd;
+    public void setOriginEnd(long originEnd){
+        this.originEnd = originEnd;
+        this.rangeEnd = originEnd;
+    }
 
 
 }

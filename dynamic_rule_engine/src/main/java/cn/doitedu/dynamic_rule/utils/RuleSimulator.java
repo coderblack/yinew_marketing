@@ -40,9 +40,9 @@ public class RuleSimulator {
         HashMap<String, String> paramProps1 = new HashMap<>();
         paramProps1.put("p1","v1");
         count1.setProperties(paramProps1);
-        count1.setRangeStart(0);
-        count1.setRangeEnd(Long.MAX_VALUE);
-        count1.setCnts(2);
+        count1.setOriginStart(0);
+        count1.setOriginEnd(Long.MAX_VALUE);
+        count1.setCnt(4);
         String sql1 = "select\n" +
                 "    deviceId,\n" +
                 "    count(1) as cnt\n" +
@@ -53,16 +53,14 @@ public class RuleSimulator {
                 ";";
         count1.setCountQuerySql(sql1);
 
-
-
         RuleAtomicParam count2 = new RuleAtomicParam();
         count2.setEventId("D");
         HashMap<String, String> paramProps2 = new HashMap<>();
         paramProps2.put("p2","v2");
         count2.setProperties(paramProps2);
-        count2.setRangeStart(1617094800000L);
-        count2.setRangeEnd(Long.MAX_VALUE);
-        count2.setCnts(1);
+        count2.setOriginStart(1617094800000L);
+        count2.setOriginEnd(Long.MAX_VALUE);
+        count2.setCnt(1);
         String sql2 = "select\n" +
                 "    deviceId,\n" +
                 "    count(1) as cnt\n" +
@@ -72,8 +70,6 @@ public class RuleSimulator {
                 "group by deviceId \n" +
                 ";";
         count2.setCountQuerySql(sql2);
-
-
 
 
         ArrayList<RuleAtomicParam> countParams = new ArrayList<>();
@@ -88,16 +84,16 @@ public class RuleSimulator {
         HashMap<String, String> seqProps1 = new HashMap<>();
         seqProps1.put("p1","v1");
         param1.setProperties(seqProps1);
-        param1.setRangeStart(0);
-        param1.setRangeEnd(Long.MAX_VALUE);
+        param1.setOriginStart(0);
+        param1.setOriginEnd(Long.MAX_VALUE);
 
         RuleAtomicParam param2 = new RuleAtomicParam();
         param2.setEventId("C");
         HashMap<String, String> seqProps2 = new HashMap<>();
         seqProps2.put("p2","v2");
         param2.setProperties(seqProps2);
-        param2.setRangeStart(0);
-        param2.setRangeEnd(Long.MAX_VALUE);
+        param2.setOriginStart(0);
+        param2.setOriginEnd(Long.MAX_VALUE);
 
 
         ArrayList<RuleAtomicParam> ruleParams = new ArrayList<>();
@@ -133,7 +129,6 @@ public class RuleSimulator {
                 "  )\n" +
                 "group by deviceId;";
         ruleParam.setActionSequenceQuerySql(sql);
-
 
         return  ruleParam;
     }

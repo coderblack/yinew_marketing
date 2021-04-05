@@ -23,7 +23,7 @@ public class ActionCountsQueryClickhouseTest {
         param1.setRangeStart(0);
         param1.setRangeEnd(Long.MAX_VALUE);
         param1.setProperties(paramProps1);
-        param1.setCnts(2);
+        param1.setCnt(2);
 
         RuleAtomicParam param2 = new RuleAtomicParam();
         param2.setEventId("W");
@@ -32,7 +32,7 @@ public class ActionCountsQueryClickhouseTest {
         param2.setProperties(paramProps2);
         param2.setRangeStart(0);
         param2.setRangeEnd(Long.MAX_VALUE);
-        param2.setCnts(2);
+        param2.setCnt(2);
 
         ArrayList<RuleAtomicParam> ruleParams = new ArrayList<>();
         ruleParams.add(param1);
@@ -45,7 +45,7 @@ public class ActionCountsQueryClickhouseTest {
         boolean b = impl.queryActionCounts("000001",  ruleParam);
         List<RuleAtomicParam> params = ruleParam.getUserActionCountParams();
         for (RuleAtomicParam param : params) {
-            System.out.println(param.getCnts() + ", " + param.getRealCnts());
+            System.out.println(param.getCnt() + ", " + param.getRealCnt());
         }
 
 

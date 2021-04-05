@@ -64,14 +64,14 @@ public class ActionCountsQueryTest {
         HashMap<String, String> paramProps1 = new HashMap<>();
         paramProps1.put("p1","v1");
         param1.setProperties(paramProps1);
-        param1.setCnts(2);
+        param1.setCnt(2);
 
         RuleAtomicParam param2 = new RuleAtomicParam();
         param2.setEventId("000020");
         HashMap<String, String> paramProps2 = new HashMap<>();
         paramProps2.put("p2","v3");
         param2.setProperties(paramProps2);
-        param2.setCnts(2);
+        param2.setCnt(2);
 
         ArrayList<RuleAtomicParam> ruleParams = new ArrayList<>();
         ruleParams.add(param1);
@@ -80,7 +80,7 @@ public class ActionCountsQueryTest {
         service.queryActionCountsHelper(eventList,ruleParams);
 
         for (RuleAtomicParam ruleParam : ruleParams) {
-            System.out.println(ruleParam.getEventId()+","+ruleParam.getCnts() + "," + ruleParam.getRealCnts());
+            System.out.println(ruleParam.getEventId()+","+ruleParam.getCnt() + "," + ruleParam.getRealCnt());
         }
 
 

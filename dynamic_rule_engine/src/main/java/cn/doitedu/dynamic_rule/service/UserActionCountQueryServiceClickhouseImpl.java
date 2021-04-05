@@ -1,15 +1,11 @@
 package cn.doitedu.dynamic_rule.service;
 
-import cn.doitedu.dynamic_rule.pojo.LogBean;
 import cn.doitedu.dynamic_rule.pojo.RuleAtomicParam;
 import cn.doitedu.dynamic_rule.pojo.RuleParam;
-import cn.doitedu.dynamic_rule.utils.ClickhouseCountQuerySqlUtil;
 import cn.doitedu.dynamic_rule.utils.ConnectionUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.flink.api.common.state.ListState;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.List;
@@ -77,12 +73,12 @@ public class UserActionCountQueryServiceClickhouseImpl implements UserActionCoun
             // 从结果中取出cnt字段
             int realCnt = (int) resultSet.getLong(2);
             // 将查询结果赛回规则参数对象
-            log.info("规则:{},用户:{},查询clickhouse次数条件,查询前cnt:{},本次cnt:{},累加后cnt:{}",ruleId,deviceId,atomicParam.getRealCnts(),realCnt,atomicParam.getRealCnts()+realCnt);
-            atomicParam.setRealCnts(atomicParam.getRealCnts() + realCnt);
+            log.info("规则:{},用户:{},查询clickhouse次数条件,查询前cnt:{},本次cnt:{},累加后cnt:{}",ruleId,deviceId,atomicParam.getRealCnt(),realCnt,atomicParam.getRealCnt()+realCnt);
+            atomicParam.setRealCnt(atomicParam.getRealCnt() + realCnt);
         }
 
         // 只要有一个原子条件查询结果不满足，则直接返回最终结果false
-        if (atomicParam.getRealCnts() < atomicParam.getCnts()) {
+        if (atomicParam.getRealCnt() < atomicParam.getCnt()) {
             return false;
         } else {
             return true;

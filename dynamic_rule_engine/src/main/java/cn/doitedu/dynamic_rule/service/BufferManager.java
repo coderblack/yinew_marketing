@@ -30,7 +30,7 @@ public class BufferManager {
      * @return 缓存数据
      */
     public BufferResult getBufferData(String bufferKey,RuleAtomicParam atomicParam){
-        BufferResult bufferResult = getBufferData(bufferKey, atomicParam.getRangeStart(), atomicParam.getRangeEnd(), atomicParam.getCnts());
+        BufferResult bufferResult = getBufferData(bufferKey, atomicParam.getRangeStart(), atomicParam.getRangeEnd(), atomicParam.getCnt());
         return bufferResult;
     }
 
@@ -70,18 +70,17 @@ public class BufferManager {
                 && paramRangeEnd>=bufferResult.getBufferRangeEnd()
                 && bufferResult.getBufferValue()>=threshold){
             bufferResult.setBufferAvailableLevel(BufferAvailableLevel.WHOLE_AVL);
-            log.warn("count缓存完全匹配");
+            log.warn("{} 缓存完全匹配,value为: {}",bufferKey,bufferResult.getBufferValue());
         }
 
         /*
          * 判断缓存有效性： 部分有效
+         * TODO 重大bug修改，少了个else，逻辑就完全错误了
          */
-        if(paramRangeStart == bufferResult.getBufferRangeStart() && paramRangeEnd>=bufferResult.getBufferRangeEnd()){
-
+        else if(paramRangeStart == bufferResult.getBufferRangeStart() && paramRangeEnd>=bufferResult.getBufferRangeEnd()){
             bufferResult.setBufferAvailableLevel(BufferAvailableLevel.PARTIAL_AVL);
             // 更新外部后续查询的条件窗口起始点
-            bufferResult.setOutSideQueryStart(bufferResult.getBufferRangeEnd());
-
+            //bufferResult.setOutSideQueryStart(bufferResult.getBufferRangeEnd());
             log.warn("count缓存部分匹配");
         }
 

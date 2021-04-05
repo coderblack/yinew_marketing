@@ -7,10 +7,7 @@ import cn.doitedu.dynamic_rule.utils.RuleCalcUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.state.ListState;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * @author 涛哥
@@ -50,7 +47,7 @@ public class UserActionCountQueryServiceStateImpl implements UserActionCountQuer
 
         // 经过上面的方法执行后，每一个原子条件中，都拥有了一个真实发生次数，我们在此判断是否每个原子条件都满足
         for (RuleAtomicParam userActionCountParam : userActionCountParams) {
-            if (userActionCountParam.getRealCnts() < userActionCountParam.getCnts()) {
+            if (userActionCountParam.getRealCnt() < userActionCountParam.getCnt()) {
                 return false;
             }
         }
@@ -74,11 +71,11 @@ public class UserActionCountQueryServiceStateImpl implements UserActionCountQuer
 
                 // 判断当前logbean 和当前 规则原子条件userActionCountParam 是否一致
                 boolean isMatch = RuleCalcUtil.eventBeanMatchEventParam(logBean, userActionCountParam,true);
-                log.debug("用户:{},查询了近期count条件,{},查询到的结果:{}",logBean.getDeviceId(),userActionCountParam.getEventId(),userActionCountParam.getRealCnts());
+                log.debug("用户:{},查询了近期count条件,{},查询到的结果:{}",logBean.getDeviceId(),userActionCountParam.getEventId(),userActionCountParam.getRealCnt());
 
                 // 如果一致，则查询次数结果+1
                 if (isMatch) {
-                    userActionCountParam.setRealCnts(userActionCountParam.getRealCnts() + 1);
+                    userActionCountParam.setRealCnt(userActionCountParam.getRealCnt() + 1);
                 }
             }
 
@@ -103,10 +100,10 @@ public class UserActionCountQueryServiceStateImpl implements UserActionCountQuer
         for (LogBean logBean : logBeans) {
             boolean b = RuleCalcUtil.eventBeanMatchEventParam(logBean, atomicParam, true);
             // 如果事件和条件匹配，则真实次数+1
-            if(b) atomicParam.setRealCnts(atomicParam.getRealCnts()+1);
+            if(b) atomicParam.setRealCnt(atomicParam.getRealCnt()+1);
         }
 
-        return atomicParam.getRealCnts() >= atomicParam.getCnts();
+        return atomicParam.getRealCnt() >= atomicParam.getCnt();
     }
 
 

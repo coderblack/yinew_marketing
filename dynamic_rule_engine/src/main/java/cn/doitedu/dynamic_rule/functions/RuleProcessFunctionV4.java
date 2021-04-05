@@ -29,7 +29,7 @@ public class RuleProcessFunctionV4 extends KeyedProcessFunction<String, LogBean,
 
     ListState<LogBean> eventState;
 
-    RuleParam ruleParam;
+    // RuleParam ruleParam;
 
     @Override
     public void open(Configuration parameters) throws Exception {
@@ -39,7 +39,7 @@ public class RuleProcessFunctionV4 extends KeyedProcessFunction<String, LogBean,
          * TODO 规则的获取，现在是通过模拟器生成
          * TODO 后期需要改造成从外部获取
          */
-        ruleParam = RuleSimulator.getRuleParam();
+        // ruleParam = RuleSimulator.getRuleParam();
 
         /*
          * 准备一个存储明细事件的state
@@ -70,11 +70,15 @@ public class RuleProcessFunctionV4 extends KeyedProcessFunction<String, LogBean,
         // 超过2小时的logBean会被自动清除（前面设置了ttl存活时长）
         eventState.add(logBean);
 
+        // TODO 重大bug，下面的处理过程会不断修改ruleParam中条件的时间字段，如果不在这里重新获取规则，则下一次触发计算时，条件已经不是原来的条件了
+        RuleParam ruleParam = RuleSimulator.getRuleParam();
+
+
         /*
          * 主逻辑，进行规则触发和计算
          */
         if (ruleParam.getTriggerParam().getEventId().equals(logBean.getEventId())) {
-            log.debug("{}规则,触发人:{},触发事件:{},触发时间:{}",ruleParam.getRuleId(),logBean.getDeviceId(),logBean.getEventId(),logBean.getTimeStamp());
+            log.debug("规则:{},用户:{},触发事件:{},触发时间:{}", ruleParam.getRuleId(),logBean.getDeviceId(),logBean.getEventId(),logBean.getTimeStamp());
 
             boolean b1 = queryRouterV4.profileQuery(logBean, ruleParam);
             if(!b1) return;
@@ -91,7 +95,7 @@ public class RuleProcessFunctionV4 extends KeyedProcessFunction<String, LogBean,
             resultBean.setTimeStamp(logBean.getTimeStamp());
             resultBean.setRuleId(ruleParam.getRuleId());
             resultBean.setDeviceId(logBean.getDeviceId());
-            log.info("{}规则,触发人:{},计算匹配成功",ruleParam.getRuleId(),logBean.getDeviceId());
+            log.info("{}规则,触发人:{},计算匹配成功", ruleParam.getRuleId(),logBean.getDeviceId());
 
             out.collect(resultBean);
         }
