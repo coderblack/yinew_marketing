@@ -55,13 +55,12 @@ public class UserActionCountQueryServiceClickhouseImpl implements UserActionCoun
     public boolean queryActionCounts(String deviceId, RuleAtomicParam atomicParam,String ruleId) throws Exception {
         // 对当前的原子条件拼接查询sql
         String sql = atomicParam.getCountQuerySql();
-        // 需要将sql中的deviceId占位符替换成真实deviceId
-        /*sql.replaceAll("\\$\\{deviceid\\}",deviceId)*/
-        // TODO bug修复，之前的replaceAll返回结果没有重新赋值给变量sql
-        sql = sql.replaceAll("\\$\\{deviceid\\}", deviceId);
-        log.debug("clickhouse查询count条件，sql为：\n {}" ,sql);
-
         // 获取一个clickhouse 的jdbc连接
+        /*PreparedStatement ps = conn.prepareStatement(sql);
+        // 需要将sql中的deviceId占位符替换成真实deviceId
+        ps.setString(1,deviceId);*/
+
+        sql = sql.replaceAll("\\$\\{did\\}",deviceId);
         Statement statement = conn.createStatement();
         ResultSet resultSet = statement.executeQuery(sql);
 

@@ -29,7 +29,7 @@ public class RuleSimulator {
 
         // 构造画像条件
         HashMap<String, String> userProfileParams = new HashMap<>();
-        userProfileParams.put("tag5","v5");
+        userProfileParams.put("tag5","v1");
         //userProfileParams.put("tag6","v2");
         ruleParam.setUserProfileParams(userProfileParams);
 
@@ -42,12 +42,12 @@ public class RuleSimulator {
         count1.setProperties(paramProps1);
         count1.setOriginStart(0);
         count1.setOriginEnd(Long.MAX_VALUE);
-        count1.setCnt(4);
+        count1.setCnt(10);
         String sql1 = "select\n" +
                 "    deviceId,\n" +
                 "    count(1) as cnt\n" +
                 "from yinew_detail\n" +
-                "where deviceId='${deviceid}' and eventId='B' and properties['p1']='v1'\n" +
+                "where deviceId= '${did}' and eventId='B' and properties['p1']='v1'\n" +
                 "  and timeStamp between 0 and 6615900580000\n" +
                 "group by deviceId\n" +
                 ";";
@@ -60,12 +60,12 @@ public class RuleSimulator {
         count2.setProperties(paramProps2);
         count2.setOriginStart(1617094800000L);
         count2.setOriginEnd(Long.MAX_VALUE);
-        count2.setCnt(1);
+        count2.setCnt(22);
         String sql2 = "select\n" +
                 "    deviceId,\n" +
                 "    count(1) as cnt\n" +
                 "from yinew_detail\n" +
-                "where deviceId='${deviceid}' and eventId='D' and properties['p2']='v2'\n" +
+                "where deviceId= '${did}' and eventId='D' and properties['p2']='v2'\n" +
                 "  and timeStamp between 1617094800000 and 6615900580000\n" +
                 "group by deviceId \n" +
                 ";";
@@ -117,7 +117,7 @@ public class RuleSimulator {
                 "\n" +
                 "from yinew_detail\n" +
                 "where\n" +
-                "  deviceId = '${deviceid}'\n" +
+                "  deviceId = '${did}' \n" +
                 "    and\n" +
                 "  timeStamp >= 0\n" +
                 "    and\n" +

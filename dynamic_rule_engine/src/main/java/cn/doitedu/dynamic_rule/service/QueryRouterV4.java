@@ -151,8 +151,8 @@ public class QueryRouterV4 {
                 // 放入缓存，应该是[value,原start,原end]
                 // TODO 重大bug修改，此处的缓存应该是[value,原start,原end]，但代码执行到此时，规则条件已经是被前面缓存查询后被截短的时间，所以需要在param对象中增加origin字段
                 bufferManager.putBufferData(bufferKey, ruleAtomicParam.getRealCnt(), ruleAtomicParam.getOriginStart(), trimUnboundEnd(ruleAtomicParam.getOriginEnd(),logBean.getTimeStamp()));
-                log.warn("count近期组条件,查询结果插入缓存,key:{},value:{},buffer_start:{},buffer_end:{}",bufferKey,
-                        ruleAtomicParam.getRealCnt(),ruleAtomicParam.getOriginStart(), trimUnboundEnd(ruleAtomicParam.getOriginEnd(),logBean.getTimeStamp()));
+                log.warn("count近期组条件,查询结果插入缓存,key:{},value:{},条件阈值:{},buffer_start:{},buffer_end:{}",bufferKey,
+                        ruleAtomicParam.getRealCnt(),ruleAtomicParam.getCnt(),ruleAtomicParam.getOriginStart(), trimUnboundEnd(ruleAtomicParam.getOriginEnd(),logBean.getTimeStamp()));
             }
             log.warn("规则:{},用户:{},count近期条件组size:{},查询结果:{}",ruleParam.getRuleId(),logBean.getDeviceId(),nearRangeParamList.size(),countMatch);
 
@@ -195,7 +195,7 @@ public class QueryRouterV4 {
             long ts=System.currentTimeMillis();
             boolean b1 = userActionCountQueryClickhouseService.queryActionCounts(logBean.getDeviceId(), crossRangeParam,ruleParam.getRuleId());
             long te=System.currentTimeMillis();
-            log.debug("规则:{},用户:{},count跨界查询-clickhouse,耗时:{},总结果,start:{},end:{},结果:{},条件EID:{},条件props:{},条件阈值:{}",
+            log.debug("规则:{},用户:{},count跨界查询-clickhouse,耗时:{},条件start:{},条件end:{},结果:{},条件EID:{},条件props:{},条件阈值:{}",
                     ruleParam.getRuleId(),logBean.getDeviceId(),te-ts,
                     crossRangeParam.getRangeStart(),crossRangeParam.getRangeEnd(),
                     crossRangeParam.getRealCnt(),crossRangeParam.getEventId(),
@@ -453,7 +453,6 @@ public class QueryRouterV4 {
                 // 如果是部分有效
                 case PARTIAL_AVL:
                     // 则更新规则条件的窗口起始点
-                    // TODO 重大bug，如果end是Long.MAX,则param的start被设置成MAX，后续就完全无法查询到state了
                     //countParam.setRangeStart(bufferResult.getBufferRangeEnd());
                     countParam.setRangeStart(bufferResult.getBufferRangeEnd()==Long.MAX_VALUE?logBean.getTimeStamp()+1:bufferResult.getBufferRangeEnd());
 

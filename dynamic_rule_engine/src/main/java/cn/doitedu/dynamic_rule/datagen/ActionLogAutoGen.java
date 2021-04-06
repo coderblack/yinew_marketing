@@ -85,7 +85,7 @@ public class ActionLogAutoGen {
                         ProducerRecord<String, String> record = new ProducerRecord<>("yinew_applog", log);
                         kafkaProducer.send(record);
                         try {
-                            Thread.sleep(RandomUtils.nextInt(20, 21));
+                            Thread.sleep(RandomUtils.nextInt(5, 6));
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }

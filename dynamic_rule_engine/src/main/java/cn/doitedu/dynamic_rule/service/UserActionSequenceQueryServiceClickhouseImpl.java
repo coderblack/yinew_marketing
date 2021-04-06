@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.state.ListState;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
@@ -42,16 +43,16 @@ public class UserActionSequenceQueryServiceClickhouseImpl implements UserActionS
 
         // 取出查询sql
         String sql = ruleParam.getActionSequenceQuerySql();
+        /*PreparedStatement ps = conn.prepareStatement(sql);
         // 需要将sql中的deviceId占位符替换成真实deviceId
-        /*sql.replaceAll("\\$\\{deviceid\\}",deviceId);*/
-        // TODO bug修复，需要重新赋值
-        sql = sql.replaceAll("\\$\\{deviceid\\}",deviceId);
-        log.debug("clickhouse查询seq条件，sql为：\n {}",sql);
+        ps.setString(1,deviceId);*/
 
-        Statement stmt = conn.createStatement();
+        sql = sql.replaceAll("\\$\\{did\\}",deviceId);
+        Statement statement = conn.createStatement();
+
         // 执行查询
         long s = System.currentTimeMillis();
-        ResultSet resultSet = stmt.executeQuery(sql);
+        ResultSet resultSet = statement.executeQuery(sql);
 
 
         /* 从返回结果中进行条件判断

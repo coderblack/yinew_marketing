@@ -45,7 +45,7 @@ public class RuleAtomicParam implements Serializable {
     private long originStart;
     public void setOriginStart(long originStart){
         this.originStart = originStart;
-        this.rangeStart = rangeStart;
+        this.rangeStart = originStart;
     }
     private long originEnd;
     public void setOriginEnd(long originEnd){

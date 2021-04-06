@@ -1,4 +1,5 @@
--- 创建事件明细表
+## 创建事件明细表
+```
 allow_experimental_map_type = 1;
 create table default.yinew_detail
 (
@@ -25,8 +26,11 @@ create table default.yinew_detail
 ) ENGINE = MergeTree()
 ORDER BY (deviceId,timeStamp)
 ;
+```
 
--- 创建kafka引擎表
+
+## 创建kafka引擎表
+```
 set allow_experimental_map_type = 1;
 drop table default.yinew_detail_kafka;
 create table default.yinew_detail_kafka
@@ -50,9 +54,10 @@ create table default.yinew_detail_kafka
     sessionId         String,
     timeStamp         Int64
 ) ENGINE = Kafka('hdp01:9092,hdp02:9092,hdp03:9092','yinew_applog','group1','JSONEachRow');
+```
 
-
--- 创建物化视图
+## 创建物化视图
+```
 create MATERIALIZED VIEW yinew_view TO yinew_detail
 as
 select
@@ -76,3 +81,4 @@ select
     timeStamp
 from yinew_detail_kafka
 ;
+```
