@@ -53,3 +53,40 @@
   "type": "DELETE"
 }
 ```
+
+
+```
+{
+  "data": [
+    {
+      "id": "2",
+      "rule_name": "rule2",
+      "rule_code": "code2"
+    }
+  ],
+  "database": "realtimedw",
+  "es": 1617699081000,
+  "id": 3,
+  "isDdl": false,
+  "mysqlType": {
+    "id": "int",
+    "rule_name": "varchar(255)",
+    "rule_code": "varchar(255)"
+  },
+  "old": null,
+  "pkNames": [
+    "id"
+  ],
+  "sql": "",
+  "sqlType": {
+    "id": 4,
+    "rule_name": 12,
+    "rule_code": 12
+  },
+  "table": "test_drools",
+  "ts": 1617699082093,
+  "type": "INSERT"
+}
+
+
+```

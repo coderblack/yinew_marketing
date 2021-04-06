@@ -1,0 +1,24 @@
+package cn.doitedu.demo.droolsdemo.rules
+import cn.doitedu.dynamic_rule.demos.Action
+
+// 导包
+import cn.doitedu.dynamic_rule.demos.Applicant
+import cn.doitedu.dynamic_rule.demos.Action
+
+// rule1 名称
+rule "age if valid"
+when // 触发判断条件
+ $a: Applicant(age < 18)
+then // 满足条件后要执行的逻辑
+ $a.setValid(false);// 可以执行任何java代码（对输入的对象调用方法）
+ new Action("执行动作").doSomeThing(); //可以执行任何java代码（创建对象调方法）
+ insert(new Action("不合法")); //可以继续给容器插入对象，以触发其他规则
+end
+
+// rule2 名称
+rule "send_act"
+when
+ $a: Action()
+then
+ $a.doSomeThing();
+end
