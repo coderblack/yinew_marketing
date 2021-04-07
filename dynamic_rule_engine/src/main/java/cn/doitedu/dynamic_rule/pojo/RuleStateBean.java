@@ -22,7 +22,9 @@ public class RuleStateBean {
     private String ruleName;
     private KieSession kieSession;
     private RuleParam ruleParam;
-
+    private String ruleType;
+    // cn.doitedu.dynamic_rule.service.XqueryRouter
+    private String routerClass;
     private String cntSqls;
     private String seqSqls;
 

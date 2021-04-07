@@ -1,6 +1,7 @@
 package cn.doitedu.dynamic_rule.service;
 
 import cn.doitedu.dynamic_rule.pojo.LogBean;
+import cn.doitedu.dynamic_rule.pojo.RuleAtomicParam;
 import cn.doitedu.dynamic_rule.pojo.RuleParam;
 import cn.doitedu.dynamic_rule.utils.ConnectionUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -40,19 +41,26 @@ public class UserActionSequenceQueryServiceClickhouseImpl implements UserActionS
     public boolean queryActionSequence(String deviceId, RuleParam ruleParam) throws Exception {
         // 获取规则中，路径模式的总步骤数
         int totalStep = ruleParam.getUserActionSequenceParams().size();
+        RuleAtomicParam ruleAtomicParam = ruleParam.getUserActionSequenceParams().get(0);
 
         // 取出查询sql
         String sql = ruleParam.getActionSequenceQuerySql();
-        /*PreparedStatement ps = conn.prepareStatement(sql);
+        PreparedStatement ps = conn.prepareStatement(sql);
         // 需要将sql中的deviceId占位符替换成真实deviceId
-        ps.setString(1,deviceId);*/
+        ps.setString(1,deviceId);
+        ps.setLong(2,ruleAtomicParam.getRangeStart());
+        ps.setLong(3,ruleAtomicParam.getRangeEnd());
+        ResultSet resultSet = ps.executeQuery();
 
-        sql = sql.replaceAll("\\$\\{did\\}",deviceId);
-        Statement statement = conn.createStatement();
+        /*
+          sql = sql.replaceAll("\\$\\{did\\}",deviceId);
+          Statement statement = conn.createStatement();
+          ResultSet resultSet = statement.executeQuery(sql);
+        */
 
         // 执行查询
         long s = System.currentTimeMillis();
-        ResultSet resultSet = statement.executeQuery(sql);
+
 
 
         /* 从返回结果中进行条件判断

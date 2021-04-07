@@ -108,6 +108,14 @@ public class RuleProcessFunctionV5 extends KeyedBroadcastProcessFunction<String,
 
 
             // 构造DroolFact对象
+            // TODO 这里还可以完善： 判断规则的类型（规则组），给它注入对应的queryRouter
+            /**
+             *   String className = stateBean.getRouterClass();
+             *   String classJavaCode = stateBean.getClassCode()
+             *   // 即时编译api调用
+             *   Class cls = jitCompile(classJavaCode)
+             *   QueryRouter router = (QueryRouter)cls.newInstance()
+             */
             DroolFact droolFact = new DroolFact(logBean, ruleParam, queryRouterV4, false);
 
             // 将droolfact插入kiesssion

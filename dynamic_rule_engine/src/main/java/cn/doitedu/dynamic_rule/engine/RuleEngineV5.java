@@ -39,7 +39,6 @@ public class RuleEngineV5 {
         // 广播
         BroadcastStream<String> broadcastStream = ruleStream.broadcast(StateDescUtil.ruleKieStateDesc);
 
-
         // 连接  事件流 & 规则广播流
         BroadcastConnectedStream<LogBean, String> connected = keyed.connect(broadcastStream);
 

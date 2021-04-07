@@ -1,0 +1,78 @@
+package cn.doitedu.dynamic_rules.rules
+import cn.doitedu.dynamic_rule.pojo.DroolFact
+import cn.doitedu.dynamic_rule.pojo.LogBean
+import cn.doitedu.dynamic_rule.pojo.RuleParam
+import cn.doitedu.dynamic_rule.service.QueryRouterV4
+import java.util.HashMap
+import cn.doitedu.dynamic_rule.pojo.RuleAtomicParam
+import java.util.List
+import java.util.ArrayList
+
+rule "rule2"
+
+when
+   $d:DroolFact()
+   $b:LogBean(eventId == "F") from $d.logBean
+then
+    RuleParam ruleParam = $d.getRuleParam();
+    ruleParam.setRuleId("rule2");
+    QueryRouterV4 queryRouter = $d.getQueryRouterV4();
+
+   // 填充本规则的画像条件
+   HashMap<String,String> profileParams = new HashMap<>();
+   profileParams.put("tag7","v2");
+   profileParams.put("tag3","v1");
+   ruleParam.setUserProfileParams(profileParams);
+
+   // 填充本规则的count类条件(直接从ruleparam中取出cnt条件list，里面已经拥有sql了)
+   List<RuleAtomicParam> countParams = ruleParam.getUserActionCountParams();
+
+   RuleAtomicParam param0 = countParams.get(0);
+   param0.setEventId("H");
+   HashMap<String,String> props0 = new HashMap<>();
+   props0.put("p1","v1");
+   props0.put("p2","v3");
+   param0.setProperties(props0);
+   param0.setCnt(8);
+   param0.setOriginStart(0);
+   param0.setOriginEnd(Long.MAX_VALUE);
+
+
+   // 填充本规则的次序列条件
+   ArrayList<RuleAtomicParam> seqParams = new ArrayList<>();
+
+   RuleAtomicParam seq0 = new RuleAtomicParam();
+   seq0.setEventId("A");
+   HashMap<String,String> seq0prop = new HashMap<>();
+   seq0prop.put("p1","v1");
+   seq0.setProperties(seq0prop);
+   seq0.setOriginStart(0);
+   seq0.setOriginEnd(Long.MAX_VALUE);
+
+
+   RuleAtomicParam seq1 = new RuleAtomicParam();
+   seq1.setEventId("C");
+   HashMap<String,String> seq1prop = new HashMap<>();
+   seq1prop.put("p2","v2");
+   seq1.setProperties(seq1prop);
+   seq1.setOriginStart(0);
+   seq1.setOriginEnd(Long.MAX_VALUE);
+
+   seqParams.add(seq0);
+   seqParams.add(seq1);
+
+   ruleParam.setUserActionSequenceParams(seqParams);
+
+   // 执行匹配查询计算
+   if(
+    queryRouter.profileQuery($b, ruleParam)
+      &&
+    queryRouter.sequenceConditionQuery($b, ruleParam)
+      &&
+    queryRouter.countConditionQuery($b, ruleParam)
+    ){
+       // 设置结果
+       $d.setMatch(true);
+    }
+
+end

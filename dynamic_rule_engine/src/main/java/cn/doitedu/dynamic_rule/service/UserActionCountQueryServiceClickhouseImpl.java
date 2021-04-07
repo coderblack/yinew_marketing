@@ -56,13 +56,17 @@ public class UserActionCountQueryServiceClickhouseImpl implements UserActionCoun
         // 对当前的原子条件拼接查询sql
         String sql = atomicParam.getCountQuerySql();
         // 获取一个clickhouse 的jdbc连接
-        /*PreparedStatement ps = conn.prepareStatement(sql);
+        PreparedStatement ps = conn.prepareStatement(sql);
         // 需要将sql中的deviceId占位符替换成真实deviceId
-        ps.setString(1,deviceId);*/
+        ps.setString(1,deviceId);
+        ps.setLong(2,atomicParam.getRangeStart());
+        ps.setLong(3,atomicParam.getRangeEnd());
 
-        sql = sql.replaceAll("\\$\\{did\\}",deviceId);
+        ResultSet resultSet = ps.executeQuery();
+
+        /*sql = sql.replaceAll("\\$\\{did\\}",deviceId);
         Statement statement = conn.createStatement();
-        ResultSet resultSet = statement.executeQuery(sql);
+        ResultSet resultSet = statement.executeQuery(sql);*/
 
         /* *
          * deviceId,cnt
