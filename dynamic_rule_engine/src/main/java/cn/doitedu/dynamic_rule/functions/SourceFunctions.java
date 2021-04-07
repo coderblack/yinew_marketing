@@ -19,4 +19,15 @@ public class SourceFunctions {
     }
 
 
+    public static FlinkKafkaConsumer<String> getKafkaRuleSource() {
+
+
+        Properties props = new Properties();
+        props.setProperty("bootstrap.servers", "hdp01:9092,hdp02:9092,hdp03:9092");
+        props.setProperty("auto.offset.reset", "latest");
+        FlinkKafkaConsumer<String> source = new FlinkKafkaConsumer<>("yinew_drl_rule", new SimpleStringSchema(), props);
+
+
+        return source;
+    }
 }

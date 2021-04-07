@@ -4,12 +4,14 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class ResultBean {
+import java.util.List;
 
-    private String ruleId;
-    private String deviceId;
-    private long timeStamp;
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class RuleCanalBean {
+
+    private List<RuleTableRecord> data;
+    private String type;
+
 }
