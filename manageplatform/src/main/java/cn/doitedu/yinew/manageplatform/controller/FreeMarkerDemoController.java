@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -29,12 +28,10 @@ public class FreeMarkerDemoController {
             animals.add(animal);
         }
 
-
         // 数据封装
         HashMap<String, Object> data = new HashMap<>();
         data.put("user", name);
         data.put("animals", animals);
-
 
         // 构造模板引擎
         Configuration cfg = new Configuration(Configuration.VERSION_2_3_22);

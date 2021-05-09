@@ -33,7 +33,6 @@ public class RuleEngineV5 {
         // TODO 后续可以升级改造成 动态keyBy
         KeyedStream<LogBean, String> keyed = beanStream.keyBy(new DeviceKeySelector());
 
-
         // 读取规则信息流
         DataStreamSource<String> ruleStream = env.addSource(SourceFunctions.getKafkaRuleSource());
         // 广播
@@ -44,7 +43,6 @@ public class RuleEngineV5 {
 
         // 开始核心计算处理
         SingleOutputStreamOperator<ResultBean> resultStream = connected.process(new RuleProcessFunctionV5());
-
 
         // 打印
         resultStream.print();
