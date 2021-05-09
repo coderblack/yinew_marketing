@@ -31,11 +31,11 @@ public class RuleStatus implements Serializable {
     private String lastTrigTime;
     private String publishTime;
     private String ruleType;
-    private long trigCount;
+    private String trigCount;
     private String hitRatio;
-    private long hitCount;
+    private String hitCount;
     private String compareGroupRatio;
     private String ruleGroupRatio;
-    private boolean runStatus;
+    private String runStatus;
 
 }
