@@ -12,6 +12,7 @@
  - redis
  - clickhouse
  - hbase
+ - drools
 
 管理监控平台主要开发技术：
 - springboot
