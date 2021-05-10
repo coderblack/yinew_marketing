@@ -78,7 +78,7 @@ public class RuleProcessFunctionV4 extends KeyedProcessFunction<String, LogBean,
          * 主逻辑，进行规则触发和计算
          */
         if (ruleParam.getTriggerParam().getEventId().equals(logBean.getEventId())) {
-            log.debug("规则:{},用户:{},触发事件:{},触发时间:{}", ruleParam.getRuleId(),logBean.getDeviceId(),logBean.getEventId(),logBean.getTimeStamp());
+            log.debug("规则:{},用户:{},触发事件:{},触发时间:{}", ruleParam.getRuleName(),logBean.getDeviceId(),logBean.getEventId(),logBean.getTimeStamp());
 
             boolean b1 = queryRouterV4.profileQuery(logBean, ruleParam);
             if(!b1) return;
@@ -93,9 +93,9 @@ public class RuleProcessFunctionV4 extends KeyedProcessFunction<String, LogBean,
             // 输出一个规则匹配成功的结果
             ResultBean resultBean = new ResultBean();
             resultBean.setTimeStamp(logBean.getTimeStamp());
-            resultBean.setRuleId(ruleParam.getRuleId());
+            resultBean.setRuleId(ruleParam.getRuleName());
             resultBean.setDeviceId(logBean.getDeviceId());
-            log.info("{}规则,触发人:{},计算匹配成功", ruleParam.getRuleId(),logBean.getDeviceId());
+            log.info("{}规则,触发人:{},计算匹配成功", ruleParam.getRuleName(),logBean.getDeviceId());
 
             out.collect(resultBean);
         }

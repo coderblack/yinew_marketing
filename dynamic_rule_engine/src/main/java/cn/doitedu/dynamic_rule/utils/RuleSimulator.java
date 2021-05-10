@@ -19,7 +19,7 @@ public class RuleSimulator {
     public static RuleParam getRuleParam(){
 
         RuleParam ruleParam = new RuleParam();
-        ruleParam.setRuleId("test_rule_1");
+        ruleParam.setRuleName("test_rule_1");
 
         // 构造触发条件
         RuleAtomicParam trigger = new RuleAtomicParam();

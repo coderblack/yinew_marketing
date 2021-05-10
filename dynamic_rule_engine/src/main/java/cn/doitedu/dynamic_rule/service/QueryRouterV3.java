@@ -127,13 +127,13 @@ public class QueryRouterV3 {
 
             // 将参数对象的rangeStart换成分界点，去state service中查询一下
             crossRangeParam.setRangeStart(splitPoint);
-            boolean b = userActionCountQueryStateService.queryActionCounts(logBean.getDeviceId(),  crossRangeParam,ruleParam.getRuleId());
+            boolean b = userActionCountQueryStateService.queryActionCounts(logBean.getDeviceId(),  crossRangeParam,ruleParam.getRuleName());
             if (b) continue;
 
             // 如果上面不满足，则将rangeEnd换成分界点，去clickhouse service查询
             crossRangeParam.setRangeStart(originRangeStart);
             crossRangeParam.setRangeEnd(splitPoint);
-            boolean b1 = userActionCountQueryClickhouseService.queryActionCounts(logBean.getDeviceId(), crossRangeParam,ruleParam.getRuleId());
+            boolean b1 = userActionCountQueryClickhouseService.queryActionCounts(logBean.getDeviceId(), crossRangeParam,ruleParam.getRuleName());
 
             if (!b1) return false;
         }

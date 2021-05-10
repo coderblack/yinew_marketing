@@ -6,7 +6,6 @@ import cn.doitedu.dynamic_rule.pojo.RuleAtomicParam;
 import cn.doitedu.dynamic_rule.pojo.RuleParam;
 import cn.doitedu.dynamic_rule.service.*;
 import cn.doitedu.dynamic_rule.utils.RuleSimulator;
-import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.api.common.state.ListState;
 import org.apache.flink.api.common.state.ListStateDescriptor;
 import org.apache.flink.api.common.state.StateTtlConfig;
@@ -172,7 +171,7 @@ public class RuleProcessFunctionV2 extends KeyedProcessFunction<String, LogBean,
             // 输出一个规则匹配成功的结果
             ResultBean resultBean = new ResultBean();
             resultBean.setTimeStamp(logBean.getTimeStamp());
-            resultBean.setRuleId(ruleParam.getRuleId());
+            resultBean.setRuleId(ruleParam.getRuleName());
             resultBean.setDeviceId(logBean.getDeviceId());
 
             out.collect(resultBean);

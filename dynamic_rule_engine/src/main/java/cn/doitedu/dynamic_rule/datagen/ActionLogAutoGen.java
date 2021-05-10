@@ -70,7 +70,7 @@ public class ActionLogAutoGen {
     }
 
     private static void genBatch(Properties props) {
-        for(int i=0;i<40;i++) {
+        for(int i=0;i<10;i++) {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -85,7 +85,7 @@ public class ActionLogAutoGen {
                         ProducerRecord<String, String> record = new ProducerRecord<>("yinew_applog", log);
                         kafkaProducer.send(record);
                         try {
-                            Thread.sleep(RandomUtils.nextInt(5, 6));
+                            Thread.sleep(RandomUtils.nextInt(100, 200));
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }

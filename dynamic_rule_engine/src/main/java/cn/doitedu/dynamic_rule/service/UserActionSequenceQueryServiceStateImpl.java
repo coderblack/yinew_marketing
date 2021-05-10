@@ -55,7 +55,7 @@ public class UserActionSequenceQueryServiceStateImpl implements UserActionSequen
         ruleParam.setUserActionSequenceQueriedMaxStep(ruleParam.getUserActionSequenceQueriedMaxStep()+maxStep);
 
         // 然后判断整个序列条件是否满足：真实最大匹配步骤是否等于条件的步骤数
-        log.debug("序列匹配:state,规则:{},用户:{},结果maxStep：{},条件步数:{}, ",ruleParam.getRuleId(),deviceId,maxStep,userActionSequenceParams.size());
+        log.debug("序列匹配:state,规则:{},用户:{},结果maxStep：{},条件步数:{}, ",ruleParam.getRuleName(),deviceId,maxStep,userActionSequenceParams.size());
         return maxStep == userActionSequenceParams.size();
     }
 

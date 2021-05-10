@@ -8,17 +8,20 @@ import lombok.extern.slf4j.Slf4j;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.Statement;
 import java.util.List;
 
 @Slf4j
 public class UserActionCountQueryServiceClickhouseImpl implements UserActionCountQueryService {
 
-    private Connection conn;
+    private static Connection conn;
 
-    public UserActionCountQueryServiceClickhouseImpl() throws Exception {
+    static {
         // 获取clickhouse的jdbc连接对象
-        conn = ConnectionUtils.getClickhouseConnection();
+        try {
+            conn = ConnectionUtils.getClickhouseConnection();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -37,7 +40,7 @@ public class UserActionCountQueryServiceClickhouseImpl implements UserActionCoun
 
         // 遍历每一个原子条件进行查询判断
         for (RuleAtomicParam atomicParam : userActionCountParams) {
-            queryActionCounts(deviceId,atomicParam,ruleParam.getRuleId());
+            queryActionCounts(deviceId,atomicParam,ruleParam.getRuleName());
         }
         // 如果走到这一句代码，说明上面的每一个原子条件查询后都满足规则，那么返回最终结果true
         return true;

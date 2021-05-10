@@ -15,7 +15,7 @@ when
    $b:LogBean(eventId == "F") from $d.logBean
 then
     RuleParam ruleParam = $d.getRuleParam();
-    ruleParam.setRuleId("rule2");
+    //ruleParam.setRuleName("rule2");
     QueryRouterV4 queryRouter = $d.getQueryRouterV4();
 
    // 填充本规则的画像条件

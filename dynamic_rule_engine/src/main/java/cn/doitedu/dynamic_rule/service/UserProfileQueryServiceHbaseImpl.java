@@ -21,20 +21,34 @@ import java.util.Set;
 @Slf4j
 public class UserProfileQueryServiceHbaseImpl implements UserProfileQueryService {
 
-    Connection conn;
-    Table table;
+    static Connection conn;
+    static Table table;
+
+    static {
+        Configuration conf = new Configuration();
+        conf.set("hbase.zookeeper.quorum", "hdp01:2181,hdp02:2181,hdp03:2181");
+
+        log.debug("hbase连接准备创建");
+        try {
+            conn = ConnectionFactory.createConnection(conf);
+            table = conn.getTable(TableName.valueOf("yinew_profile"));
+            log.debug("hbase连接创建完毕");
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
 
     /**
      * 构造函数
      */
     public UserProfileQueryServiceHbaseImpl() throws IOException {
-        Configuration conf = new Configuration();
+        /*Configuration conf = new Configuration();
         conf.set("hbase.zookeeper.quorum", "hdp01:2181,hdp02:2181,hdp03:2181");
 
         log.debug("hbase连接准备创建");
         conn = ConnectionFactory.createConnection(conf);
         table = conn.getTable(TableName.valueOf("yinew_profile"));
-        log.debug("hbase连接创建完毕");
+        log.debug("hbase连接创建完毕");*/
     }
 
     /**
@@ -77,19 +91,19 @@ public class UserProfileQueryServiceHbaseImpl implements UserProfileQueryService
                 // 判断查询到的value和条件中要求的value是否一致，如果不一致，方法直接返回：false
                 te = System.currentTimeMillis();
                 if(valueBytes == null){
-                    log.debug("规则:{},用户:{},查询Hbase,要求的条件是:{},{},查询结果为:{},匹配失败,耗费时长:{}",ruleParam.getRuleId(),
+                    log.info("规则:{},用户:{},查询Hbase,要求的条件是:{},{},查询结果为:{},匹配失败,耗费时长:{}",ruleParam.getRuleName(),
                             deviceId,tagName,userProfileParams.get(tagName),"null",te-ts);
                     return false;
                 }
                 valueStr = new String(valueBytes);
                 if(!valueStr.equals(userProfileParams.get(tagName))){
-                    log.debug("规则:{},用户:{},查询Hbase,要求的条件是:{},{},查询结果为:{},匹配失败,耗费时长:{}",ruleParam.getRuleId(),
+                    log.debug("规则:{},用户:{},查询Hbase,要求的条件是:{},{},查询结果为:{},匹配失败,耗费时长:{}",ruleParam.getRuleName(),
                             deviceId,tagName,userProfileParams.get(tagName),new String(valueBytes),te-ts);
                     return false;
                 }
             }
 
-            log.debug("规则:{},用户:{},查询Hbase,要求的条件是:{},查询结果为:{},匹配成功,耗费时长:{}",ruleParam.getRuleId(),
+            log.info("规则:{},用户:{},查询Hbase,要求的条件是:{},查询结果为:{},匹配成功,耗费时长:{}",ruleParam.getRuleName(),
                     deviceId,userProfileParams,valueStr,te-ts);
             // 如果上面的for循环走完了，那说明每个标签的查询值都等于条件中要求的值，则可以返回true
             return true;

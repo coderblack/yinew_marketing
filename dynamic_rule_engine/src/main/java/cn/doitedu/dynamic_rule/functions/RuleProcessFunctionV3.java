@@ -91,7 +91,7 @@ public class RuleProcessFunctionV3 extends KeyedProcessFunction<String, LogBean,
             // 输出一个规则匹配成功的结果
             ResultBean resultBean = new ResultBean();
             resultBean.setTimeStamp(logBean.getTimeStamp());
-            resultBean.setRuleId(ruleParam.getRuleId());
+            resultBean.setRuleId(ruleParam.getRuleName());
             resultBean.setDeviceId(logBean.getDeviceId());
 
             out.collect(resultBean);

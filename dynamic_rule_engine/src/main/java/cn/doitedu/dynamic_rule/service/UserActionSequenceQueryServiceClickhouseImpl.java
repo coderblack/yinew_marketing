@@ -23,11 +23,16 @@ import java.sql.Statement;
 @Slf4j
 public class UserActionSequenceQueryServiceClickhouseImpl implements UserActionSequenceQueryService{
 
-    private Connection conn;
+    private static Connection conn;
 
-    public UserActionSequenceQueryServiceClickhouseImpl() throws Exception {
-        conn = ConnectionUtils.getClickhouseConnection();
-    }
+
+   static {
+       try {
+           conn = ConnectionUtils.getClickhouseConnection();
+       } catch (Exception e) {
+           e.printStackTrace();
+       }
+   }
 
     /**
      * 从clickhouse中查询行为序列条件是否满足

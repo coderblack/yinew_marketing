@@ -86,6 +86,7 @@ public class RuleProcessFunctionV5 extends KeyedBroadcastProcessFunction<String,
 
             // 构造ruleparam对象
             RuleParam ruleParam = new RuleParam();
+            ruleParam.setRuleName(ruleName);
 
 
             // 放入cntsql
@@ -148,7 +149,7 @@ public class RuleProcessFunctionV5 extends KeyedBroadcastProcessFunction<String,
 
         // 解析json成对象
         RuleCanalBean ruleCanalBean = JSON.parseObject(canalJson, RuleCanalBean.class);
-        log.debug("收到一个规则库的操作,信息为: {}",ruleCanalBean);
+        log.info("收到一个规则库的操作,信息为: {}",ruleCanalBean);
 
         // 分情况处理获取的规则操作信息（新增，更新，删除，停用，启用）
         RuleOperationHandler.handleRuleOper(ruleCanalBean,mapState);
